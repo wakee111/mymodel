@@ -1,0 +1,64 @@
+Args in experiment:
+Namespace(random_seed=2024, is_training=1, model_id='ETTm2_96_192', model='CycleNet', data='ETTm2', root_path='./dataset/ETT-small/', data_path='ETTm2.csv', features='M', target='OT', freq='h', checkpoints='./checkpoints/', seq_len=96, label_len=0, pred_len=192, cycle=96, model_type='mlp', use_revin=1, msc_layers=0, freq_layers=0, channel_attn_layers=0, mrt_layers=2, modern_layers=0, fc_dropout=0.05, head_dropout=0.0, patch_len=16, stride=8, padding_patch='end', revin=0, affine=0, subtract_last=0, decomposition=0, kernel_size=25, individual=0, rnn_type='gru', dec_way='pmf', seg_len=48, channel_id=1, period_len=24, embed_type=0, enc_in=7, dec_in=7, c_out=7, d_model=512, n_heads=8, e_layers=2, d_layers=1, d_ff=2048, moving_avg=25, factor=1, distil=True, dropout=0, embed='timeF', activation='gelu', output_attention=False, do_predict=False, num_workers=10, itr=1, train_epochs=30, batch_size=256, patience=5, learning_rate=0.005, des='test', loss='mse', lradj='type3', pct_start=0.3, use_amp=False, use_gpu=True, gpu=0, use_multi_gpu=False, devices='0,1', test_flop=False)
+Use GPU: cuda:0
+>>>>>>>start training : ETTm2_96_192_CycleNet_ETTm2_ftM_sl96_pl192_cycle96_mlp_seed2024>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 34273
+val 11329
+test 11329
+	iters: 100, epoch: 1 | loss: 0.4266766
+	speed: 0.0421s/iter; left time: 163.8532s
+Epoch: 1 cost time: 4.773244380950928
+Epoch: 1, Steps: 133 | Train Loss: 0.3500025 Vali Loss: 0.1749217 Test Loss: 0.2485578
+Validation loss decreased (inf --> 0.174922).  Saving model ...
+Updating learning rate to 0.005
+	iters: 100, epoch: 2 | loss: 0.3339316
+	speed: 0.0579s/iter; left time: 217.4271s
+Epoch: 2 cost time: 2.759284257888794
+Epoch: 2, Steps: 133 | Train Loss: 0.3209127 Vali Loss: 0.1649690 Test Loss: 0.2339401
+Validation loss decreased (0.174922 --> 0.164969).  Saving model ...
+Updating learning rate to 0.005
+	iters: 100, epoch: 3 | loss: 0.2093378
+	speed: 0.0586s/iter; left time: 212.4788s
+Epoch: 3 cost time: 2.718317985534668
+Epoch: 3, Steps: 133 | Train Loss: 0.2960127 Vali Loss: 0.1635753 Test Loss: 0.2362116
+Validation loss decreased (0.164969 --> 0.163575).  Saving model ...
+Updating learning rate to 0.005
+	iters: 100, epoch: 4 | loss: 0.3023784
+	speed: 0.0592s/iter; left time: 206.8231s
+Epoch: 4 cost time: 2.7537667751312256
+Epoch: 4, Steps: 133 | Train Loss: 0.2835655 Vali Loss: 0.1633429 Test Loss: 0.2374244
+Validation loss decreased (0.163575 --> 0.163343).  Saving model ...
+Updating learning rate to 0.004
+	iters: 100, epoch: 5 | loss: 0.2611795
+	speed: 0.0621s/iter; left time: 208.6493s
+Epoch: 5 cost time: 2.901942014694214
+Epoch: 5, Steps: 133 | Train Loss: 0.2724442 Vali Loss: 0.1647911 Test Loss: 0.2388946
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.0032000000000000006
+	iters: 100, epoch: 6 | loss: 0.2051024
+	speed: 0.0589s/iter; left time: 190.0609s
+Epoch: 6 cost time: 2.7428319454193115
+Epoch: 6, Steps: 133 | Train Loss: 0.2630695 Vali Loss: 0.1666386 Test Loss: 0.2413235
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.0025600000000000006
+	iters: 100, epoch: 7 | loss: 0.2215263
+	speed: 0.0592s/iter; left time: 183.1274s
+Epoch: 7 cost time: 2.8929152488708496
+Epoch: 7, Steps: 133 | Train Loss: 0.2543214 Vali Loss: 0.1678229 Test Loss: 0.2439921
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.0020480000000000003
+	iters: 100, epoch: 8 | loss: 0.2338316
+	speed: 0.0606s/iter; left time: 179.3311s
+Epoch: 8 cost time: 2.793452262878418
+Epoch: 8, Steps: 133 | Train Loss: 0.2463417 Vali Loss: 0.1709588 Test Loss: 0.2490879
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.0016384000000000004
+	iters: 100, epoch: 9 | loss: 0.2320559
+	speed: 0.0598s/iter; left time: 169.1600s
+Epoch: 9 cost time: 2.664330005645752
+Epoch: 9, Steps: 133 | Train Loss: 0.2400626 Vali Loss: 0.1737127 Test Loss: 0.2520680
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : ETTm2_96_192_CycleNet_ETTm2_ftM_sl96_pl192_cycle96_mlp_seed2024<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 11329
+mse:0.23955462872982025, mae:0.2991397976875305

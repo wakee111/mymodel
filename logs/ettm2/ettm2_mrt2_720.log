@@ -1,0 +1,64 @@
+Args in experiment:
+Namespace(random_seed=2024, is_training=1, model_id='ETTm2_96_720', model='CycleNet', data='ETTm2', root_path='./dataset/ETT-small/', data_path='ETTm2.csv', features='M', target='OT', freq='h', checkpoints='./checkpoints/', seq_len=96, label_len=0, pred_len=720, cycle=96, model_type='mlp', use_revin=1, msc_layers=0, freq_layers=0, channel_attn_layers=0, mrt_layers=2, modern_layers=0, fc_dropout=0.05, head_dropout=0.0, patch_len=16, stride=8, padding_patch='end', revin=0, affine=0, subtract_last=0, decomposition=0, kernel_size=25, individual=0, rnn_type='gru', dec_way='pmf', seg_len=48, channel_id=1, period_len=24, embed_type=0, enc_in=7, dec_in=7, c_out=7, d_model=512, n_heads=8, e_layers=2, d_layers=1, d_ff=2048, moving_avg=25, factor=1, distil=True, dropout=0, embed='timeF', activation='gelu', output_attention=False, do_predict=False, num_workers=10, itr=1, train_epochs=30, batch_size=256, patience=5, learning_rate=0.005, des='test', loss='mse', lradj='type3', pct_start=0.3, use_amp=False, use_gpu=True, gpu=0, use_multi_gpu=False, devices='0,1', test_flop=False)
+Use GPU: cuda:0
+>>>>>>>start training : ETTm2_96_720_CycleNet_ETTm2_ftM_sl96_pl720_cycle96_mlp_seed2024>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 33745
+val 10801
+test 10801
+	iters: 100, epoch: 1 | loss: 0.5495162
+	speed: 0.0576s/iter; left time: 220.5402s
+Epoch: 1 cost time: 6.531380653381348
+Epoch: 1, Steps: 131 | Train Loss: 0.5952783 Vali Loss: 0.2910568 Test Loss: 0.4131936
+Validation loss decreased (inf --> 0.291057).  Saving model ...
+Updating learning rate to 0.005
+	iters: 100, epoch: 2 | loss: 0.4898905
+	speed: 0.0799s/iter; left time: 295.6731s
+Epoch: 2 cost time: 4.105119228363037
+Epoch: 2, Steps: 131 | Train Loss: 0.5735702 Vali Loss: 0.2825174 Test Loss: 0.4023997
+Validation loss decreased (0.291057 --> 0.282517).  Saving model ...
+Updating learning rate to 0.005
+	iters: 100, epoch: 3 | loss: 0.3732883
+	speed: 0.0863s/iter; left time: 307.9628s
+Epoch: 3 cost time: 4.064997911453247
+Epoch: 3, Steps: 131 | Train Loss: 0.5417229 Vali Loss: 0.2802544 Test Loss: 0.3972694
+Validation loss decreased (0.282517 --> 0.280254).  Saving model ...
+Updating learning rate to 0.005
+	iters: 100, epoch: 4 | loss: 0.5748316
+	speed: 0.0872s/iter; left time: 299.9393s
+Epoch: 4 cost time: 4.1899683475494385
+Epoch: 4, Steps: 131 | Train Loss: 0.5172840 Vali Loss: 0.2795598 Test Loss: 0.4029104
+Validation loss decreased (0.280254 --> 0.279560).  Saving model ...
+Updating learning rate to 0.004
+	iters: 100, epoch: 5 | loss: 0.5277959
+	speed: 0.0855s/iter; left time: 282.8501s
+Epoch: 5 cost time: 3.8412952423095703
+Epoch: 5, Steps: 131 | Train Loss: 0.4969167 Vali Loss: 0.2837756 Test Loss: 0.4185472
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.0032000000000000006
+	iters: 100, epoch: 6 | loss: 0.5265030
+	speed: 0.0854s/iter; left time: 271.3871s
+Epoch: 6 cost time: 3.878551483154297
+Epoch: 6, Steps: 131 | Train Loss: 0.4781997 Vali Loss: 0.2830822 Test Loss: 0.4212098
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.0025600000000000006
+	iters: 100, epoch: 7 | loss: 0.5264043
+	speed: 0.0894s/iter; left time: 272.1289s
+Epoch: 7 cost time: 4.501029968261719
+Epoch: 7, Steps: 131 | Train Loss: 0.4665325 Vali Loss: 0.2843407 Test Loss: 0.4280846
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.0020480000000000003
+	iters: 100, epoch: 8 | loss: 0.5124751
+	speed: 0.0873s/iter; left time: 254.2799s
+Epoch: 8 cost time: 4.188585519790649
+Epoch: 8, Steps: 131 | Train Loss: 0.4546843 Vali Loss: 0.2845530 Test Loss: 0.4269023
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.0016384000000000004
+	iters: 100, epoch: 9 | loss: 0.4755453
+	speed: 0.0888s/iter; left time: 247.0080s
+Epoch: 9 cost time: 4.377044677734375
+Epoch: 9, Steps: 131 | Train Loss: 0.4467504 Vali Loss: 0.2850338 Test Loss: 0.4291820
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : ETTm2_96_720_CycleNet_ETTm2_ftM_sl96_pl720_cycle96_mlp_seed2024<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 10801
+mse:0.39694714546203613, mae:0.3972223103046417

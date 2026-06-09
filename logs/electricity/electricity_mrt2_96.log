@@ -1,0 +1,66 @@
+Args in experiment:
+Namespace(random_seed=2024, is_training=1, model_id='Electricity_96_96', model='CycleNet', data='custom', root_path='./dataset/electricity/', data_path='electricity.csv', features='M', target='OT', freq='h', checkpoints='./checkpoints/', seq_len=96, label_len=0, pred_len=96, cycle=168, model_type='mlp', use_revin=1, msc_layers=0, freq_layers=0, channel_attn_layers=0, mrt_layers=2, modern_layers=0, fc_dropout=0.05, head_dropout=0.0, patch_len=16, stride=8, padding_patch='end', revin=0, affine=0, subtract_last=0, decomposition=0, kernel_size=25, individual=0, rnn_type='gru', dec_way='pmf', seg_len=48, channel_id=1, period_len=24, embed_type=0, enc_in=321, dec_in=7, c_out=7, d_model=512, n_heads=8, e_layers=2, d_layers=1, d_ff=2048, moving_avg=25, factor=1, distil=True, dropout=0, embed='timeF', activation='gelu', output_attention=False, do_predict=False, num_workers=10, itr=1, train_epochs=30, batch_size=64, patience=5, learning_rate=0.005, des='test', loss='mse', lradj='type3', pct_start=0.3, use_amp=False, use_gpu=True, gpu=0, use_multi_gpu=False, devices='0,1', test_flop=False)
+Use GPU: cuda:0
+>>>>>>>start training : Electricity_96_96_CycleNet_custom_ftM_sl96_pl96_cycle168_mlp_mrt2_seed2024>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 18221
+val 2537
+test 5165
+	iters: 100, epoch: 1 | loss: 0.2560863
+	speed: 0.1391s/iter; left time: 1171.1211s
+	iters: 200, epoch: 1 | loss: 0.2040294
+	speed: 0.0936s/iter; left time: 778.6024s
+Epoch: 1 cost time: 28.959858655929565
+Epoch: 1, Steps: 284 | Train Loss: 0.2824722 Vali Loss: 0.1815088 Test Loss: 0.2050845
+Validation loss decreased (inf --> 0.181509).  Saving model ...
+Updating learning rate to 0.005
+	iters: 100, epoch: 2 | loss: 0.1371606
+	speed: 0.2275s/iter; left time: 1851.0269s
+	iters: 200, epoch: 2 | loss: 0.1277010
+	speed: 0.0656s/iter; left time: 527.2876s
+Epoch: 2 cost time: 19.940907955169678
+Epoch: 2, Steps: 284 | Train Loss: 0.1447885 Vali Loss: 0.1235404 Test Loss: 0.1461827
+Validation loss decreased (0.181509 --> 0.123540).  Saving model ...
+Updating learning rate to 0.005
+	iters: 100, epoch: 3 | loss: 0.1275611
+	speed: 0.2708s/iter; left time: 2126.9014s
+	iters: 200, epoch: 3 | loss: 0.1332572
+	speed: 0.0930s/iter; left time: 721.2712s
+Epoch: 3 cost time: 27.91801643371582
+Epoch: 3, Steps: 284 | Train Loss: 0.1245380 Vali Loss: 0.1240956 Test Loss: 0.1496717
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.005
+	iters: 100, epoch: 4 | loss: 0.1218503
+	speed: 0.2751s/iter; left time: 2082.5584s
+	iters: 200, epoch: 4 | loss: 0.1078349
+	speed: 0.0654s/iter; left time: 488.7107s
+Epoch: 4 cost time: 19.86042857170105
+Epoch: 4, Steps: 284 | Train Loss: 0.1149760 Vali Loss: 0.1295137 Test Loss: 0.1582306
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.004
+	iters: 100, epoch: 5 | loss: 0.1055306
+	speed: 0.2384s/iter; left time: 1736.8482s
+	iters: 200, epoch: 5 | loss: 0.0961983
+	speed: 0.0804s/iter; left time: 577.4737s
+Epoch: 5 cost time: 24.015611171722412
+Epoch: 5, Steps: 284 | Train Loss: 0.1055899 Vali Loss: 0.1401249 Test Loss: 0.1709787
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.0032000000000000006
+	iters: 100, epoch: 6 | loss: 0.0896568
+	speed: 0.3053s/iter; left time: 2137.1355s
+	iters: 200, epoch: 6 | loss: 0.0899300
+	speed: 0.0879s/iter; left time: 606.4631s
+Epoch: 6 cost time: 25.02757692337036
+Epoch: 6, Steps: 284 | Train Loss: 0.0985716 Vali Loss: 0.1483907 Test Loss: 0.1826992
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.0025600000000000006
+	iters: 100, epoch: 7 | loss: 0.0957870
+	speed: 0.2336s/iter; left time: 1568.9989s
+	iters: 200, epoch: 7 | loss: 0.0891347
+	speed: 0.0651s/iter; left time: 430.7542s
+Epoch: 7 cost time: 19.76264524459839
+Epoch: 7, Steps: 284 | Train Loss: 0.0944208 Vali Loss: 0.1560699 Test Loss: 0.1951586
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : Electricity_96_96_CycleNet_custom_ftM_sl96_pl96_cycle168_mlp_mrt2_seed2024<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 5165
+mse:0.14593032002449036, mae:0.24918800592422485

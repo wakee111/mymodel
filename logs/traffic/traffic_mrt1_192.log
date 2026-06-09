@@ -1,0 +1,58 @@
+Args in experiment:
+Namespace(random_seed=2024, is_training=1, model_id='traffic_96_192', model='CycleNet', data='custom', root_path='./dataset/traffic/', data_path='traffic.csv', features='M', target='OT', freq='h', checkpoints='./checkpoints/', seq_len=96, label_len=0, pred_len=192, cycle=168, model_type='mlp', use_revin=1, msc_layers=0, freq_layers=0, channel_attn_layers=0, mrt_layers=1, modern_layers=0, fc_dropout=0.05, head_dropout=0.0, patch_len=16, stride=8, padding_patch='end', revin=0, affine=0, subtract_last=0, decomposition=0, kernel_size=25, individual=0, rnn_type='gru', dec_way='pmf', seg_len=48, channel_id=1, period_len=24, embed_type=0, enc_in=862, dec_in=7, c_out=7, d_model=512, n_heads=8, e_layers=2, d_layers=1, d_ff=2048, moving_avg=25, factor=1, distil=True, dropout=0, embed='timeF', activation='gelu', output_attention=False, do_predict=False, num_workers=10, itr=1, train_epochs=30, batch_size=64, patience=5, learning_rate=0.002, des='test', loss='mse', lradj='type3', pct_start=0.3, use_amp=False, use_gpu=True, gpu=0, use_multi_gpu=False, devices='0,1', test_flop=False)
+Use GPU: cuda:0
+>>>>>>>start training : traffic_96_192_CycleNet_custom_ftM_sl96_pl192_cycle168_mlp_mrt1_seed2024>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 11993
+val 1565
+test 3317
+	iters: 100, epoch: 1 | loss: 0.5363890
+	speed: 0.1335s/iter; left time: 735.8277s
+Epoch: 1 cost time: 22.22437334060669
+Epoch: 1, Steps: 187 | Train Loss: 0.6245135 Vali Loss: 0.6022953 Test Loss: 0.7363062
+Validation loss decreased (inf --> 0.602295).  Saving model ...
+Updating learning rate to 0.002
+	iters: 100, epoch: 2 | loss: 0.2931828
+	speed: 0.3746s/iter; left time: 1994.4397s
+Epoch: 2 cost time: 20.428704500198364
+Epoch: 2, Steps: 187 | Train Loss: 0.3146381 Vali Loss: 0.4059333 Test Loss: 0.4938841
+Validation loss decreased (0.602295 --> 0.405933).  Saving model ...
+Updating learning rate to 0.002
+	iters: 100, epoch: 3 | loss: 0.2352821
+	speed: 0.3760s/iter; left time: 1931.3785s
+Epoch: 3 cost time: 20.349748373031616
+Epoch: 3, Steps: 187 | Train Loss: 0.2458497 Vali Loss: 0.3997854 Test Loss: 0.4845551
+Validation loss decreased (0.405933 --> 0.399785).  Saving model ...
+Updating learning rate to 0.002
+	iters: 100, epoch: 4 | loss: 0.2321719
+	speed: 0.3743s/iter; left time: 1852.5422s
+Epoch: 4 cost time: 20.22265362739563
+Epoch: 4, Steps: 187 | Train Loss: 0.2271709 Vali Loss: 0.4014853 Test Loss: 0.4880041
+EarlyStopping counter: 1 out of 5
+Updating learning rate to 0.0016
+	iters: 100, epoch: 5 | loss: 0.2175805
+	speed: 0.3758s/iter; left time: 1790.1145s
+Epoch: 5 cost time: 20.403955698013306
+Epoch: 5, Steps: 187 | Train Loss: 0.2156394 Vali Loss: 0.4066344 Test Loss: 0.4991150
+EarlyStopping counter: 2 out of 5
+Updating learning rate to 0.0012800000000000003
+	iters: 100, epoch: 6 | loss: 0.2177186
+	speed: 0.3724s/iter; left time: 1704.2543s
+Epoch: 6 cost time: 20.366756439208984
+Epoch: 6, Steps: 187 | Train Loss: 0.2079956 Vali Loss: 0.4100614 Test Loss: 0.5040508
+EarlyStopping counter: 3 out of 5
+Updating learning rate to 0.0010240000000000002
+	iters: 100, epoch: 7 | loss: 0.1926086
+	speed: 0.3757s/iter; left time: 1649.0941s
+Epoch: 7 cost time: 20.33995008468628
+Epoch: 7, Steps: 187 | Train Loss: 0.2029248 Vali Loss: 0.4156162 Test Loss: 0.5098670
+EarlyStopping counter: 4 out of 5
+Updating learning rate to 0.0008192000000000002
+	iters: 100, epoch: 8 | loss: 0.2073285
+	speed: 0.3735s/iter; left time: 1569.2525s
+Epoch: 8 cost time: 20.251341819763184
+Epoch: 8, Steps: 187 | Train Loss: 0.1992353 Vali Loss: 0.4189673 Test Loss: 0.5209756
+EarlyStopping counter: 5 out of 5
+Early stopping
+>>>>>>>testing : traffic_96_192_CycleNet_custom_ftM_sl96_pl192_cycle168_mlp_mrt1_seed2024<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 3317
+mse:0.4840937852859497, mae:0.32818740606307983
