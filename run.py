@@ -39,6 +39,10 @@ parser.add_argument('--use_revin', type=int, default=1, help='1: use revin or 0:
 
 # CycleNet enhancement modules (0 = disabled)
 parser.add_argument('--mrt_layers', type=int, default=0, help='MultiResidualTrend layers (0=disabled)')
+parser.add_argument('--freq_layers', type=int, default=0, help='FrequencyFilter layers (0=disabled)')
+parser.add_argument('--freq_v2_layers', type=int, default=0, help='FrequencyFilterV2 (complex weights) layers (0=disabled)')
+parser.add_argument('--freq_v3_layers', type=int, default=0, help='FrequencyFilterV3 (adaptive mask) layers (0=disabled)')
+parser.add_argument('--freq_v4_layers', type=int, default=0, help='FrequencyFilterV4 (band basis) layers (0=disabled)')
 
 # DLinear
 #parser.add_argument('--individual', action='store_true', default=False, help='DLinear: a linear layer for each variate(channel) individually')
@@ -134,9 +138,21 @@ if args.is_training:
         # setting record of experiments
         # Build module suffix for result tracking
         mrt_l = getattr(args, 'mrt_layers', 0)
+        freq_l = getattr(args, 'freq_layers', 0)
+        freq_v2_l = getattr(args, 'freq_v2_layers', 0)
+        freq_v3_l = getattr(args, 'freq_v3_layers', 0)
+        freq_v4_l = getattr(args, 'freq_v4_layers', 0)
         module_suffix = ''
         if mrt_l:
-            module_suffix = '_mrt{}'.format(mrt_l)
+            module_suffix += '_mrt{}'.format(mrt_l)
+        if freq_l:
+            module_suffix += '_freq{}'.format(freq_l)
+        if freq_v2_l:
+            module_suffix += '_freqv2{}'.format(freq_v2_l)
+        if freq_v3_l:
+            module_suffix += '_freqv3{}'.format(freq_v3_l)
+        if freq_v4_l:
+            module_suffix += '_freqv4{}'.format(freq_v4_l)
 
         setting = '{}_{}_{}_ft{}_sl{}_pl{}_cycle{}_{}{}_seed{}'.format(
             args.model_id,

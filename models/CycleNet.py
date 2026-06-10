@@ -1,6 +1,10 @@
 import torch
 import torch.nn as nn
 from layers.MultiResidualTrend import MultiResidualTrendLayer
+from layers.FrequencyFilter import FrequencyFilterLayer
+from layers.FrequencyFilterV2 import FrequencyFilterV2Layer
+from layers.FrequencyFilterV3 import FrequencyFilterV3Layer
+from layers.FrequencyFilterV4 import FrequencyFilterV4Layer
 
 
 class RecurrentCycle(torch.nn.Module):
@@ -34,16 +38,56 @@ class Model(nn.Module):
 
         # Optional layer counts (0 = disabled)
         self.mrt_layers = getattr(configs, 'mrt_layers', 0)
+        self.freq_layers = getattr(configs, 'freq_layers', 0)
+        self.freq_v2_layers = getattr(configs, 'freq_v2_layers', 0)
+        self.freq_v3_layers = getattr(configs, 'freq_v3_layers', 0)
+        self.freq_v4_layers = getattr(configs, 'freq_v4_layers', 0)
 
         self.cycleQueue = RecurrentCycle(cycle_len=self.cycle_len, channel_size=self.enc_in)
 
-        # MRT: Multi-Resolution Residual Trend blocks
+        # MRT: Multi-Resolution Residual Trend blocks (low-frequency trends)
         self.mrt_blocks = nn.ModuleList([
             MultiResidualTrendLayer(
                 seq_len=self.seq_len,
                 channel_size=self.enc_in,
             )
             for _ in range(self.mrt_layers)
+        ])
+
+        # FreqFilter: Frequency-domain spectral filter (mid-frequency sub-harmonics)
+        self.freq_blocks = nn.ModuleList([
+            FrequencyFilterLayer(
+                seq_len=self.seq_len,
+                channel_size=self.enc_in,
+            )
+            for _ in range(self.freq_layers)
+        ])
+
+        # FreqFilterV2: Complex-weight spectral filter (magnitude + phase)
+        self.freq_v2_blocks = nn.ModuleList([
+            FrequencyFilterV2Layer(
+                seq_len=self.seq_len,
+                channel_size=self.enc_in,
+            )
+            for _ in range(self.freq_v2_layers)
+        ])
+
+        # FreqFilterV3: Adaptive spectral filter (input-dependent mask)
+        self.freq_v3_blocks = nn.ModuleList([
+            FrequencyFilterV3Layer(
+                seq_len=self.seq_len,
+                channel_size=self.enc_in,
+            )
+            for _ in range(self.freq_v3_layers)
+        ])
+
+        # FreqFilterV4: Band-basis spectral filter (K basis × per-channel mix)
+        self.freq_v4_blocks = nn.ModuleList([
+            FrequencyFilterV4Layer(
+                seq_len=self.seq_len,
+                channel_size=self.enc_in,
+            )
+            for _ in range(self.freq_v4_layers)
         ])
 
         # ---- Forecasting backbone ----
@@ -72,9 +116,25 @@ class Model(nn.Module):
         # Permute to [B, C, L] for enhancement modules
         x = x.permute(0, 2, 1)  # [B, L, C] → [B, C, L]
 
-        # MRT: multi-resolution trend extraction on residual
+        # MRT: multi-resolution trend extraction on residual (low-frequency)
         for mrt in self.mrt_blocks:
             x = mrt(x)
+
+        # FreqFilter: frequency-domain spectral filtering (sub-harmonics)
+        for freq in self.freq_blocks:
+            x = freq(x)
+
+        # FreqFilterV2: complex-weight spectral filtering (magnitude + phase)
+        for freq_v2 in self.freq_v2_blocks:
+            x = freq_v2(x)
+
+        # FreqFilterV3: adaptive spectral filtering (input-dependent mask)
+        for freq_v3 in self.freq_v3_blocks:
+            x = freq_v3(x)
+
+        # FreqFilterV4: band-basis spectral filtering
+        for freq_v4 in self.freq_v4_blocks:
+            x = freq_v4(x)
 
         # forecasting with channel independence (parameters-sharing)
         y = self.model(x).permute(0, 2, 1)

@@ -625,3 +625,246 @@ mse:0.21061743795871735, mae:0.26105666160583496
 weather_96_720_CycleNet_custom_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2024  
 mse:0.3421792685985565, mae:0.3438354730606079
 
+solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2024  
+mse:0.18229706585407257, mae:0.25177904963493347
+
+solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2025  
+mse:0.18227557837963104, mae:0.24829021096229553
+
+solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2026  
+mse:0.1798047423362732, mae:0.2474440485239029
+
+solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2027  
+mse:0.18096446990966797, mae:0.2477051019668579
+
+solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2028  
+mse:0.1852625608444214, mae:0.2538512051105499
+
+solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2024  
+mse:0.20546855032444, mae:0.26572030782699585
+
+solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2025  
+mse:0.19584693014621735, mae:0.2612416446208954
+
+solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2026  
+mse:0.1974981278181076, mae:0.2579974830150604
+
+solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2027  
+mse:0.1983858346939087, mae:0.2552439272403717
+
+solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2028  
+mse:0.20299173891544342, mae:0.26802027225494385
+
+solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2024  
+mse:0.2083069533109665, mae:0.26099008321762085
+
+solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2025  
+mse:0.205484077334404, mae:0.2562863826751709
+
+solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2026  
+mse:0.20299525558948517, mae:0.2565625309944153
+
+solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2027  
+mse:0.20268726348876953, mae:0.2565588355064392
+
+solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2028  
+mse:0.2121766358613968, mae:0.271017462015152
+
+solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2024  
+mse:0.21054154634475708, mae:0.2604709267616272
+
+solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2025  
+mse:0.21045391261577606, mae:0.25680971145629883
+
+solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2026  
+mse:0.22360111773014069, mae:0.2749585807323456
+
+solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2027  
+mse:0.21024897694587708, mae:0.25649383664131165
+
+solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2028  
+mse:0.21059845387935638, mae:0.2612709403038025
+
+weather_96_96_CycleNet_custom_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2024  
+mse:0.15617546439170837, mae:0.202854186296463
+
+weather_96_96_CycleNet_custom_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2025  
+mse:0.15613935887813568, mae:0.20291920006275177
+
+weather_96_96_CycleNet_custom_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2026  
+mse:0.1566809117794037, mae:0.20351915061473846
+
+weather_96_96_CycleNet_custom_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2027  
+mse:0.1562356799840927, mae:0.20286954939365387
+
+weather_96_96_CycleNet_custom_ftM_sl96_pl96_cycle144_mlp_mrt1_seed2028  
+mse:0.15594267845153809, mae:0.20286321640014648
+
+weather_96_192_CycleNet_custom_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2024  
+mse:0.2049926221370697, mae:0.2472492754459381
+
+weather_96_192_CycleNet_custom_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2025  
+mse:0.20424307882785797, mae:0.24683508276939392
+
+weather_96_192_CycleNet_custom_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2026  
+mse:0.2045803964138031, mae:0.24691924452781677
+
+weather_96_192_CycleNet_custom_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2027  
+mse:0.20422321557998657, mae:0.247153639793396
+
+weather_96_192_CycleNet_custom_ftM_sl96_pl192_cycle144_mlp_mrt1_seed2028  
+mse:0.2045862078666687, mae:0.2474653422832489
+
+weather_96_336_CycleNet_custom_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2024  
+mse:0.2612987458705902, mae:0.2896185517311096
+
+weather_96_336_CycleNet_custom_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2025  
+mse:0.2606818675994873, mae:0.28894534707069397
+
+weather_96_336_CycleNet_custom_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2026  
+mse:0.2608506977558136, mae:0.28870007395744324
+
+weather_96_336_CycleNet_custom_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2027  
+mse:0.26079899072647095, mae:0.28903183341026306
+
+weather_96_336_CycleNet_custom_ftM_sl96_pl336_cycle144_mlp_mrt1_seed2028  
+mse:0.2608582079410553, mae:0.28924715518951416
+
+weather_96_720_CycleNet_custom_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2024  
+mse:0.3420156240463257, mae:0.34362107515335083
+
+weather_96_720_CycleNet_custom_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2025  
+mse:0.3408072292804718, mae:0.34271320700645447
+
+weather_96_720_CycleNet_custom_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2026  
+mse:0.34151557087898254, mae:0.3431189954280853
+
+weather_96_720_CycleNet_custom_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2027  
+mse:0.34138166904449463, mae:0.34291890263557434
+
+weather_96_720_CycleNet_custom_ftM_sl96_pl720_cycle144_mlp_mrt1_seed2028  
+mse:0.34112784266471863, mae:0.3429670035839081
+
+ETTh1_96_96_CycleNet_ETTh1_ftM_sl96_pl96_cycle24_mlp_freq1_seed2024  
+mse:0.3778521716594696, mae:0.3966408669948578
+
+ETTh1_96_96_CycleNet_ETTh1_ftM_sl96_pl96_cycle24_mlp_freq1_seed2024  
+mse:0.37458333373069763, mae:0.3946565091609955
+
+ETTh1_96_192_CycleNet_ETTh1_ftM_sl96_pl192_cycle24_mlp_freq1_seed2024  
+mse:0.4337913691997528, mae:0.4255494773387909
+
+ETTh1_96_336_CycleNet_ETTh1_ftM_sl96_pl336_cycle24_mlp_freq1_seed2024  
+mse:0.49565550684928894, mae:0.45247042179107666
+
+ETTh1_96_720_CycleNet_ETTh1_ftM_sl96_pl720_cycle24_mlp_freq1_seed2024  
+mse:0.49779772758483887, mae:0.4719039499759674
+
+ETTh2_96_96_CycleNet_ETTh2_ftM_sl96_pl96_cycle24_mlp_freq1_seed2024  
+mse:0.2968531548976898, mae:0.3429335057735443
+
+ETTh2_96_192_CycleNet_ETTh2_ftM_sl96_pl192_cycle24_mlp_freq1_seed2024  
+mse:0.37036067247390747, mae:0.39631548523902893
+
+ETTh2_96_336_CycleNet_ETTh2_ftM_sl96_pl336_cycle24_mlp_freq1_seed2024  
+mse:0.4274623990058899, mae:0.4353824257850647
+
+ETTh2_96_720_CycleNet_ETTh2_ftM_sl96_pl720_cycle24_mlp_freq1_seed2024  
+mse:0.4439760148525238, mae:0.4549436569213867
+
+ETTm1_96_96_CycleNet_ETTm1_ftM_sl96_pl96_cycle96_mlp_freq1_seed2024  
+mse:0.317322313785553, mae:0.3559598922729492
+
+ETTm1_96_192_CycleNet_ETTm1_ftM_sl96_pl192_cycle96_mlp_freq1_seed2024  
+mse:0.3571324050426483, mae:0.37906354665756226
+
+ETTm1_96_336_CycleNet_ETTm1_ftM_sl96_pl336_cycle96_mlp_freq1_seed2024  
+mse:0.3867693245410919, mae:0.4020974934101105
+
+ETTm1_96_720_CycleNet_ETTm1_ftM_sl96_pl720_cycle96_mlp_freq1_seed2024  
+mse:0.4490296542644501, mae:0.44146668910980225
+
+solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_freq1_seed2024  
+mse:0.18316569924354553, mae:0.2397996187210083
+
+solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_freq1_seed2024  
+mse:0.20399288833141327, mae:0.2626606225967407
+
+solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_freq1_seed2024  
+mse:0.20896068215370178, mae:0.25931641459465027
+
+solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_freq1_seed2024  
+mse:0.21446359157562256, mae:0.2596554756164551
+
+ETTh1_96_96_CycleNet_ETTh1_ftM_sl96_pl96_cycle24_mlp_freqv21_seed2024  
+mse:0.37476515769958496, mae:0.39498019218444824
+
+ETTh1_96_192_CycleNet_ETTh1_ftM_sl96_pl192_cycle24_mlp_freqv21_seed2024  
+mse:0.4334867596626282, mae:0.4254346489906311
+
+ETTh1_96_336_CycleNet_ETTh1_ftM_sl96_pl336_cycle24_mlp_freqv21_seed2024  
+mse:0.4958591163158417, mae:0.45252177119255066
+
+ETTh1_96_720_CycleNet_ETTh1_ftM_sl96_pl720_cycle24_mlp_freqv21_seed2024  
+mse:0.4978860914707184, mae:0.4718967378139496
+
+ETTh2_96_96_CycleNet_ETTh2_ftM_sl96_pl96_cycle24_mlp_freqv21_seed2024  
+mse:0.30164816975593567, mae:0.34920498728752136
+
+ETTh2_96_192_CycleNet_ETTh2_ftM_sl96_pl192_cycle24_mlp_freqv21_seed2024  
+mse:0.3712809681892395, mae:0.39806637167930603
+
+ETTh2_96_336_CycleNet_ETTh2_ftM_sl96_pl336_cycle24_mlp_freqv21_seed2024  
+mse:0.4294346272945404, mae:0.4382302165031433
+
+ETTh2_96_720_CycleNet_ETTh2_ftM_sl96_pl720_cycle24_mlp_freqv21_seed2024  
+mse:0.4438178539276123, mae:0.45484793186187744
+
+ETTh1_96_96_CycleNet_ETTh1_ftM_sl96_pl96_cycle24_mlp_freqv31_seed2024  
+mse:0.37395358085632324, mae:0.3945339322090149
+
+ETTh1_96_192_CycleNet_ETTh1_ftM_sl96_pl192_cycle24_mlp_freqv31_seed2024  
+mse:0.4379751682281494, mae:0.42689916491508484
+
+ETTh1_96_336_CycleNet_ETTh1_ftM_sl96_pl336_cycle24_mlp_freqv31_seed2024  
+mse:0.4866296052932739, mae:0.4498072862625122
+
+ETTh1_96_720_CycleNet_ETTh1_ftM_sl96_pl720_cycle24_mlp_freqv31_seed2024  
+mse:0.514556348323822, mae:0.47748520970344543
+
+ETTh2_96_96_CycleNet_ETTh2_ftM_sl96_pl96_cycle24_mlp_freqv31_seed2024  
+mse:0.3012528717517853, mae:0.348669171333313
+
+ETTh2_96_192_CycleNet_ETTh2_ftM_sl96_pl192_cycle24_mlp_freqv31_seed2024  
+mse:0.37030550837516785, mae:0.39608034491539
+
+ETTh2_96_336_CycleNet_ETTh2_ftM_sl96_pl336_cycle24_mlp_freqv31_seed2024  
+mse:0.43125128746032715, mae:0.43993595242500305
+
+ETTh2_96_720_CycleNet_ETTh2_ftM_sl96_pl720_cycle24_mlp_freqv31_seed2024  
+mse:0.4387487471103668, mae:0.45064577460289
+
+ETTh1_96_96_CycleNet_ETTh1_ftM_sl96_pl96_cycle24_mlp_freqv41_seed2024  
+mse:0.37455064058303833, mae:0.3946712017059326
+
+ETTh1_96_192_CycleNet_ETTh1_ftM_sl96_pl192_cycle24_mlp_freqv41_seed2024  
+mse:0.43362683057785034, mae:0.42549821734428406
+
+ETTh1_96_336_CycleNet_ETTh1_ftM_sl96_pl336_cycle24_mlp_freqv41_seed2024  
+mse:0.495576947927475, mae:0.45245587825775146
+
+ETTh1_96_720_CycleNet_ETTh1_ftM_sl96_pl720_cycle24_mlp_freqv41_seed2024  
+mse:0.4978273808956146, mae:0.47195687890052795
+
+ETTh2_96_96_CycleNet_ETTh2_ftM_sl96_pl96_cycle24_mlp_freqv41_seed2024  
+mse:0.29731497168540955, mae:0.34336256980895996
+
+ETTh2_96_192_CycleNet_ETTh2_ftM_sl96_pl192_cycle24_mlp_freqv41_seed2024  
+mse:0.3703058362007141, mae:0.39637014269828796
+
+ETTh2_96_336_CycleNet_ETTh2_ftM_sl96_pl336_cycle24_mlp_freqv41_seed2024  
+mse:0.4292789399623871, mae:0.437175989151001
+
+ETTh2_96_720_CycleNet_ETTh2_ftM_sl96_pl720_cycle24_mlp_freqv41_seed2024  
+mse:0.44397932291030884, mae:0.4549463987350464
+
