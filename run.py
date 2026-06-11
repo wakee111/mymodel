@@ -34,6 +34,9 @@ parser.add_argument('--pred_len', type=int, default=96, help='prediction sequenc
 
 # CycleNet.
 parser.add_argument('--cycle', type=int, default=24, help='cycle length')
+parser.add_argument('--cycle_mode', type=str, default='lookup', choices=['lookup', 'lowrank'],
+                    help='cycle decomposition mode: lookup (RecurrentCycle) or lowrank (LowRankCycle)')
+parser.add_argument('--cycle_rank', type=int, default=4, help='rank for LowRankCycle decomposition (only used when --cycle_mode lowrank)')
 parser.add_argument('--model_type', type=str, default='mlp', help='model type, options: [linear, mlp]')
 parser.add_argument('--use_revin', type=int, default=1, help='1: use revin or 0: no revin')
 
@@ -147,6 +150,10 @@ if args.is_training:
         freq_v4_l = getattr(args, 'freq_v4_layers', 0)
         sgf_l = getattr(args, 'sgf_layers', 0)
         module_suffix = ''
+        # Track cycle mode deviations from default
+        cycle_mode = getattr(args, 'cycle_mode', 'lookup')
+        if cycle_mode == 'lowrank':
+            module_suffix += '_lowrank{}'.format(getattr(args, 'cycle_rank', 4))
         if mrt_l:
             module_suffix += '_mrt{}'.format(mrt_l)
         if freq_l:
@@ -203,6 +210,9 @@ else:
     ii = 0
     mrt_l = getattr(args, 'mrt_layers', 0)
     module_suffix = ''
+    cycle_mode = getattr(args, 'cycle_mode', 'lookup')
+    if cycle_mode == 'lowrank':
+        module_suffix += '_lowrank{}'.format(getattr(args, 'cycle_rank', 4))
     if mrt_l:
         module_suffix = '_mrt{}'.format(mrt_l)
 

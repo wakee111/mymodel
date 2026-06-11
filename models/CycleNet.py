@@ -6,6 +6,7 @@ from layers.FrequencyFilterV2 import FrequencyFilterV2Layer
 from layers.FrequencyFilterV3 import FrequencyFilterV3Layer
 from layers.FrequencyFilterV4 import FrequencyFilterV4Layer
 from layers.StabilityGuidedFrequencyGate import StabilityGuidedFrequencyGateLayer
+from layers.LowRankCycle import LowRankCycle
 
 
 class RecurrentCycle(torch.nn.Module):
@@ -45,7 +46,13 @@ class Model(nn.Module):
         self.freq_v4_layers = getattr(configs, 'freq_v4_layers', 0)
         self.sgf_layers = getattr(configs, 'sgf_layers', 0)
 
-        self.cycleQueue = RecurrentCycle(cycle_len=self.cycle_len, channel_size=self.enc_in)
+        # Cycle decomposition: RecurrentCycle (lookup table) or LowRankCycle (low-rank)
+        self.cycle_mode = getattr(configs, 'cycle_mode', 'lookup')
+        self.cycle_rank = getattr(configs, 'cycle_rank', 4)
+        if self.cycle_mode == 'lowrank':
+            self.cycleQueue = LowRankCycle(cycle_len=self.cycle_len, channel_size=self.enc_in, rank=self.cycle_rank)
+        else:
+            self.cycleQueue = RecurrentCycle(cycle_len=self.cycle_len, channel_size=self.enc_in)
 
         # MRT: Multi-Resolution Residual Trend blocks (low-frequency trends)
         self.mrt_blocks = nn.ModuleList([
