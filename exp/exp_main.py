@@ -163,6 +163,9 @@ class Exp_Main(Exp_Basic):
                         outputs = outputs[:, -self.args.pred_len:, f_dim:]
                         batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
                         loss = criterion(outputs, batch_y)
+                        if self.args.freq_loss_alpha < 1.0:
+                            loss_freq = (torch.fft.rfft(outputs, dim=1) - torch.fft.rfft(batch_y, dim=1)).abs().mean()
+                            loss = self.args.freq_loss_alpha * loss + (1 - self.args.freq_loss_alpha) * loss_freq
                         train_loss.append(loss.item())
                 else:
                     if any(substr in self.args.model for substr in {'Cycle'}):
@@ -180,6 +183,9 @@ class Exp_Main(Exp_Basic):
                     outputs = outputs[:, -self.args.pred_len:, f_dim:]
                     batch_y = batch_y[:, -self.args.pred_len:, f_dim:].to(self.device)
                     loss = criterion(outputs, batch_y)
+                    if self.args.freq_loss_alpha < 1.0:
+                        loss_freq = (torch.fft.rfft(outputs, dim=1) - torch.fft.rfft(batch_y, dim=1)).abs().mean()
+                        loss = self.args.freq_loss_alpha * loss + (1 - self.args.freq_loss_alpha) * loss_freq
                     train_loss.append(loss.item())
 
                 if (i + 1) % 100 == 0:

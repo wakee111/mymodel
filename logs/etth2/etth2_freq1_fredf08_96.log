@@ -1,0 +1,86 @@
+Args in experiment:
+Namespace(random_seed=2024, is_training=1, model_id='ETTh2_96_96', model='CycleNet', data='ETTh2', root_path='./dataset/ETT-small/', data_path='ETTh2.csv', features='M', target='OT', freq='h', checkpoints='./checkpoints/', seq_len=96, label_len=0, pred_len=96, cycle=24, model_type='mlp', use_revin=1, mrt_layers=0, freq_layers=1, freq_v2_layers=0, freq_v3_layers=0, freq_v4_layers=0, freq_loss_alpha=0.8, fc_dropout=0.05, head_dropout=0.0, patch_len=16, stride=8, padding_patch='end', revin=0, affine=0, subtract_last=0, decomposition=0, kernel_size=25, individual=0, rnn_type='gru', dec_way='pmf', seg_len=48, channel_id=1, period_len=24, embed_type=0, enc_in=7, dec_in=7, c_out=7, d_model=512, n_heads=8, e_layers=2, d_layers=1, d_ff=2048, moving_avg=25, factor=1, distil=True, dropout=0, embed='timeF', activation='gelu', output_attention=False, do_predict=False, num_workers=10, itr=1, train_epochs=30, batch_size=256, patience=15, learning_rate=0.005, des='test', loss='mse', lradj='type3', pct_start=0.3, use_amp=False, use_gpu=True, gpu=0, use_multi_gpu=False, devices='0,1', test_flop=False)
+Use GPU: cuda:0
+>>>>>>>start training : ETTh2_96_96_CycleNet_ETTh2_ftM_sl96_pl96_cycle24_mlp_freq1_fredf08_seed2024>>>>>>>>>>>>>>>>>>>>>>>>>>
+train 8449
+val 2785
+test 2785
+Epoch: 1 cost time: 3.2360823154449463
+Epoch: 1, Steps: 33 | Train Loss: 0.9702726 Vali Loss: 0.2435428 Test Loss: 0.3237027
+Validation loss decreased (inf --> 0.243543).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 2 cost time: 1.6128153800964355
+Epoch: 2, Steps: 33 | Train Loss: 0.9070541 Vali Loss: 0.2103007 Test Loss: 0.2935761
+Validation loss decreased (0.243543 --> 0.210301).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 3 cost time: 2.529742956161499
+Epoch: 3, Steps: 33 | Train Loss: 0.8320441 Vali Loss: 0.2101776 Test Loss: 0.2827874
+Validation loss decreased (0.210301 --> 0.210178).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 4 cost time: 1.7411725521087646
+Epoch: 4, Steps: 33 | Train Loss: 0.8111239 Vali Loss: 0.2063082 Test Loss: 0.2926614
+Validation loss decreased (0.210178 --> 0.206308).  Saving model ...
+Updating learning rate to 0.004
+Epoch: 5 cost time: 2.321139097213745
+Epoch: 5, Steps: 33 | Train Loss: 0.7983856 Vali Loss: 0.2080418 Test Loss: 0.2865674
+EarlyStopping counter: 1 out of 15
+Updating learning rate to 0.0032000000000000006
+Epoch: 6 cost time: 1.8246731758117676
+Epoch: 6, Steps: 33 | Train Loss: 0.7902746 Vali Loss: 0.2086542 Test Loss: 0.2953080
+EarlyStopping counter: 2 out of 15
+Updating learning rate to 0.0025600000000000006
+Epoch: 7 cost time: 2.3832666873931885
+Epoch: 7, Steps: 33 | Train Loss: 0.7832768 Vali Loss: 0.2076965 Test Loss: 0.2882551
+EarlyStopping counter: 3 out of 15
+Updating learning rate to 0.0020480000000000003
+Epoch: 8 cost time: 1.7579975128173828
+Epoch: 8, Steps: 33 | Train Loss: 0.7786180 Vali Loss: 0.2124688 Test Loss: 0.2908976
+EarlyStopping counter: 4 out of 15
+Updating learning rate to 0.0016384000000000004
+Epoch: 9 cost time: 2.5158426761627197
+Epoch: 9, Steps: 33 | Train Loss: 0.7690051 Vali Loss: 0.2103327 Test Loss: 0.2930387
+EarlyStopping counter: 5 out of 15
+Updating learning rate to 0.0013107200000000005
+Epoch: 10 cost time: 1.9460229873657227
+Epoch: 10, Steps: 33 | Train Loss: 0.7645444 Vali Loss: 0.2154340 Test Loss: 0.2890626
+EarlyStopping counter: 6 out of 15
+Updating learning rate to 0.0010485760000000005
+Epoch: 11 cost time: 2.1731739044189453
+Epoch: 11, Steps: 33 | Train Loss: 0.7606292 Vali Loss: 0.2112797 Test Loss: 0.2897106
+EarlyStopping counter: 7 out of 15
+Updating learning rate to 0.0008388608000000005
+Epoch: 12 cost time: 1.4988763332366943
+Epoch: 12, Steps: 33 | Train Loss: 0.7558889 Vali Loss: 0.2118715 Test Loss: 0.2909493
+EarlyStopping counter: 8 out of 15
+Updating learning rate to 0.0006710886400000003
+Epoch: 13 cost time: 1.2061214447021484
+Epoch: 13, Steps: 33 | Train Loss: 0.7534124 Vali Loss: 0.2133644 Test Loss: 0.2902036
+EarlyStopping counter: 9 out of 15
+Updating learning rate to 0.0005368709120000003
+Epoch: 14 cost time: 1.2177104949951172
+Epoch: 14, Steps: 33 | Train Loss: 0.7506614 Vali Loss: 0.2128981 Test Loss: 0.2904927
+EarlyStopping counter: 10 out of 15
+Updating learning rate to 0.0004294967296000003
+Epoch: 15 cost time: 1.2301859855651855
+Epoch: 15, Steps: 33 | Train Loss: 0.7486749 Vali Loss: 0.2115401 Test Loss: 0.2924895
+EarlyStopping counter: 11 out of 15
+Updating learning rate to 0.0003435973836800002
+Epoch: 16 cost time: 1.1305174827575684
+Epoch: 16, Steps: 33 | Train Loss: 0.7467361 Vali Loss: 0.2130037 Test Loss: 0.2907858
+EarlyStopping counter: 12 out of 15
+Updating learning rate to 0.0002748779069440002
+Epoch: 17 cost time: 1.518705129623413
+Epoch: 17, Steps: 33 | Train Loss: 0.7456290 Vali Loss: 0.2132568 Test Loss: 0.2915575
+EarlyStopping counter: 13 out of 15
+Updating learning rate to 0.00021990232555520019
+Epoch: 18 cost time: 1.5125830173492432
+Epoch: 18, Steps: 33 | Train Loss: 0.7444165 Vali Loss: 0.2133679 Test Loss: 0.2897415
+EarlyStopping counter: 14 out of 15
+Updating learning rate to 0.00017592186044416015
+Epoch: 19 cost time: 1.4787027835845947
+Epoch: 19, Steps: 33 | Train Loss: 0.7436414 Vali Loss: 0.2126732 Test Loss: 0.2908864
+EarlyStopping counter: 15 out of 15
+Early stopping
+>>>>>>>testing : ETTh2_96_96_CycleNet_ETTh2_ftM_sl96_pl96_cycle24_mlp_freq1_fredf08_seed2024<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+test 2785
+mse:0.291020929813385, mae:0.34073182940483093

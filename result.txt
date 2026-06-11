@@ -952,3 +952,51 @@ mse:0.3908328115940094, mae:0.39237526059150696
 ETTm2_96_720_CycleNet_ETTm2_ftM_sl96_pl720_cycle96_mlp_freqv41_seed2024  
 mse:0.39065995812416077, mae:0.3909514248371124
 
+ETTh1_96_96_CycleNet_ETTh1_ftM_sl96_pl96_cycle24_mlp_freq1_fredf08_seed2024  
+mse:0.3710269629955292, mae:0.3916565477848053
+
+ETTm1_96_96_CycleNet_ETTm1_ftM_sl96_pl96_cycle96_mlp_freq1_fredf08_seed2024  
+mse:0.3133902847766876, mae:0.35212257504463196
+
+ETTh2_96_96_CycleNet_ETTh2_ftM_sl96_pl96_cycle24_mlp_freq1_fredf08_seed2024  
+mse:0.291020929813385, mae:0.34073182940483093
+
+ETTh1_96_192_CycleNet_ETTh1_ftM_sl96_pl192_cycle24_mlp_freq1_fredf08_seed2024  
+mse:0.42849257588386536, mae:0.4238591492176056
+
+ETTm2_96_96_CycleNet_ETTm2_ftM_sl96_pl96_cycle96_mlp_freq1_fredf08_seed2024  
+mse:0.16059289872646332, mae:0.2423027902841568
+
+ETTh2_96_192_CycleNet_ETTh2_ftM_sl96_pl192_cycle24_mlp_freq1_fredf08_seed2024  
+mse:0.3634127378463745, mae:0.38841381669044495
+
+ETTh1_96_336_CycleNet_ETTh1_ftM_sl96_pl336_cycle24_mlp_freq1_fredf08_seed2024  
+mse:0.4778333604335785, mae:0.4451047480106354
+
+ETTm1_96_192_CycleNet_ETTm1_ftM_sl96_pl192_cycle96_mlp_freq1_fredf08_seed2024  
+mse:0.3538509011268616, mae:0.37478309869766235
+
+ETTh2_96_336_CycleNet_ETTh2_ftM_sl96_pl336_cycle24_mlp_freq1_fredf08_seed2024  
+mse:0.41440728306770325, mae:0.42752358317375183
+
+ETTh1_96_720_CycleNet_ETTh1_ftM_sl96_pl720_cycle24_mlp_freq1_fredf08_seed2024  
+mse:0.48415079712867737, mae:0.4647311568260193
+
+ETTm2_96_192_CycleNet_ETTm2_ftM_sl96_pl192_cycle96_mlp_freq1_fredf08_seed2024  
+mse:0.22619934380054474, mae:0.28573381900787354
+
+ETTh2_96_720_CycleNet_ETTh2_ftM_sl96_pl720_cycle24_mlp_freq1_fredf08_seed2024  
+mse:0.44910791516304016, mae:0.4549485743045807
+
+ETTm1_96_336_CycleNet_ETTm1_ftM_sl96_pl336_cycle96_mlp_freq1_fredf08_seed2024  
+mse:0.38317209482192993, mae:0.39802491664886475
+
+ETTm2_96_336_CycleNet_ETTm2_ftM_sl96_pl336_cycle96_mlp_freq1_fredf08_seed2024  
+mse:0.28136497735977173, mae:0.3224900960922241
+
+ETTm1_96_720_CycleNet_ETTm1_ftM_sl96_pl720_cycle96_mlp_freq1_fredf08_seed2024  
+mse:0.44470563530921936, mae:0.4357287585735321
+
+ETTm2_96_720_CycleNet_ETTm2_ftM_sl96_pl720_cycle96_mlp_freq1_fredf08_seed2024  
+mse:0.37850823998451233, mae:0.3807392418384552
+

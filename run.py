@@ -43,6 +43,7 @@ parser.add_argument('--freq_layers', type=int, default=0, help='FrequencyFilter 
 parser.add_argument('--freq_v2_layers', type=int, default=0, help='FrequencyFilterV2 (complex weights) layers (0=disabled)')
 parser.add_argument('--freq_v3_layers', type=int, default=0, help='FrequencyFilterV3 (adaptive mask) layers (0=disabled)')
 parser.add_argument('--freq_v4_layers', type=int, default=0, help='FrequencyFilterV4 (band basis) layers (0=disabled)')
+parser.add_argument('--freq_loss_alpha', type=float, default=1.0, help='FreDF frequency loss weight: alpha*MSE + (1-alpha)*MAE(FFT). 1.0 = pure MSE (default)')
 
 # DLinear
 #parser.add_argument('--individual', action='store_true', default=False, help='DLinear: a linear layer for each variate(channel) individually')
@@ -153,6 +154,9 @@ if args.is_training:
             module_suffix += '_freqv3{}'.format(freq_v3_l)
         if freq_v4_l:
             module_suffix += '_freqv4{}'.format(freq_v4_l)
+        freq_loss_alpha = getattr(args, 'freq_loss_alpha', 1.0)
+        if freq_loss_alpha < 1.0:
+            module_suffix += '_fredf{}'.format(str(freq_loss_alpha).replace('.', ''))
 
         setting = '{}_{}_{}_ft{}_sl{}_pl{}_cycle{}_{}{}_seed{}'.format(
             args.model_id,
