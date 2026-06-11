@@ -5,6 +5,7 @@ from layers.FrequencyFilter import FrequencyFilterLayer
 from layers.FrequencyFilterV2 import FrequencyFilterV2Layer
 from layers.FrequencyFilterV3 import FrequencyFilterV3Layer
 from layers.FrequencyFilterV4 import FrequencyFilterV4Layer
+from layers.StabilityGuidedFrequencyGate import StabilityGuidedFrequencyGateLayer
 
 
 class RecurrentCycle(torch.nn.Module):
@@ -42,6 +43,7 @@ class Model(nn.Module):
         self.freq_v2_layers = getattr(configs, 'freq_v2_layers', 0)
         self.freq_v3_layers = getattr(configs, 'freq_v3_layers', 0)
         self.freq_v4_layers = getattr(configs, 'freq_v4_layers', 0)
+        self.sgf_layers = getattr(configs, 'sgf_layers', 0)
 
         self.cycleQueue = RecurrentCycle(cycle_len=self.cycle_len, channel_size=self.enc_in)
 
@@ -90,6 +92,17 @@ class Model(nn.Module):
             for _ in range(self.freq_v4_layers)
         ])
 
+        # SGF: Stability-Guided Frequency Gate (prior-initialized spectral filter)
+        sgf_prior = getattr(configs, 'sgf_prior', None)
+        self.sgf_blocks = nn.ModuleList([
+            StabilityGuidedFrequencyGateLayer(
+                seq_len=self.seq_len,
+                channel_size=self.enc_in,
+                stability_prior=sgf_prior,
+            )
+            for _ in range(self.sgf_layers)
+        ])
+
         # ---- Forecasting backbone ----
         assert self.model_type in ['linear', 'mlp']
         if self.model_type == 'linear':
@@ -135,6 +148,10 @@ class Model(nn.Module):
         # FreqFilterV4: band-basis spectral filtering
         for freq_v4 in self.freq_v4_blocks:
             x = freq_v4(x)
+
+        # SGF: stability-guided frequency gate (prior-initialized)
+        for sgf in self.sgf_blocks:
+            x = sgf(x)
 
         # forecasting with channel independence (parameters-sharing)
         y = self.model(x).permute(0, 2, 1)

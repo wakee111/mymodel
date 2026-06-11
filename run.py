@@ -43,6 +43,8 @@ parser.add_argument('--freq_layers', type=int, default=0, help='FrequencyFilter 
 parser.add_argument('--freq_v2_layers', type=int, default=0, help='FrequencyFilterV2 (complex weights) layers (0=disabled)')
 parser.add_argument('--freq_v3_layers', type=int, default=0, help='FrequencyFilterV3 (adaptive mask) layers (0=disabled)')
 parser.add_argument('--freq_v4_layers', type=int, default=0, help='FrequencyFilterV4 (band basis) layers (0=disabled)')
+parser.add_argument('--sgf_layers', type=int, default=0, help='StabilityGuidedFrequencyGate layers (0=disabled)')
+parser.add_argument('--sgf_prior_path', type=str, default='', help='Path to stability prior .npy file for SGF')
 parser.add_argument('--freq_loss_alpha', type=float, default=1.0, help='FreDF frequency loss weight: alpha*MSE + (1-alpha)*MAE(FFT). 1.0 = pure MSE (default)')
 
 # DLinear
@@ -143,6 +145,7 @@ if args.is_training:
         freq_v2_l = getattr(args, 'freq_v2_layers', 0)
         freq_v3_l = getattr(args, 'freq_v3_layers', 0)
         freq_v4_l = getattr(args, 'freq_v4_layers', 0)
+        sgf_l = getattr(args, 'sgf_layers', 0)
         module_suffix = ''
         if mrt_l:
             module_suffix += '_mrt{}'.format(mrt_l)
@@ -154,6 +157,8 @@ if args.is_training:
             module_suffix += '_freqv3{}'.format(freq_v3_l)
         if freq_v4_l:
             module_suffix += '_freqv4{}'.format(freq_v4_l)
+        if sgf_l:
+            module_suffix += '_sgf{}'.format(sgf_l)
         freq_loss_alpha = getattr(args, 'freq_loss_alpha', 1.0)
         if freq_loss_alpha < 1.0:
             module_suffix += '_fredf{}'.format(str(freq_loss_alpha).replace('.', ''))
@@ -169,6 +174,18 @@ if args.is_training:
             args.model_type,
             module_suffix,
             fix_seed)
+
+        # Load SGF stability prior if needed
+        if sgf_l and hasattr(args, 'sgf_prior_path') and args.sgf_prior_path:
+            import numpy as np
+            if os.path.exists(args.sgf_prior_path):
+                args.sgf_prior = np.load(args.sgf_prior_path)
+                print(f'Loaded SGF prior from {args.sgf_prior_path}, shape={args.sgf_prior.shape}')
+            else:
+                print(f'WARNING: SGF prior file not found: {args.sgf_prior_path}, using fallback')
+                args.sgf_prior = None
+        else:
+            args.sgf_prior = None
 
         exp = Exp(args)  # set experiments
         print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
