@@ -49,6 +49,8 @@ parser.add_argument('--freq_v4_layers', type=int, default=0, help='FrequencyFilt
 parser.add_argument('--sgf_layers', type=int, default=0, help='StabilityGuidedFrequencyGate layers (0=disabled)')
 parser.add_argument('--sgf_prior_path', type=str, default='', help='Path to stability prior .npy file for SGF')
 parser.add_argument('--freq_loss_alpha', type=float, default=1.0, help='FreDF frequency loss weight: alpha*MSE + (1-alpha)*MAE(FFT). 1.0 = pure MSE (default)')
+parser.add_argument('--fusion_mode', type=str, default='serial', choices=['serial', 'parallel'],
+                    help='Enhancement module fusion: serial (default) or parallel residual-delta fusion')
 
 # DLinear
 #parser.add_argument('--individual', action='store_true', default=False, help='DLinear: a linear layer for each variate(channel) individually')
@@ -138,61 +140,81 @@ print(args)
 
 Exp = Exp_Main
 
+
+def build_module_suffix(args):
+    module_suffix = ''
+
+    cycle_mode = getattr(args, 'cycle_mode', 'lookup')
+    if cycle_mode == 'lowrank':
+        module_suffix += '_lowrank{}'.format(getattr(args, 'cycle_rank', 4))
+
+    mrt_l = getattr(args, 'mrt_layers', 0)
+    freq_l = getattr(args, 'freq_layers', 0)
+    freq_v2_l = getattr(args, 'freq_v2_layers', 0)
+    freq_v3_l = getattr(args, 'freq_v3_layers', 0)
+    freq_v4_l = getattr(args, 'freq_v4_layers', 0)
+    sgf_l = getattr(args, 'sgf_layers', 0)
+
+    if mrt_l:
+        module_suffix += '_mrt{}'.format(mrt_l)
+    if freq_l:
+        module_suffix += '_freq{}'.format(freq_l)
+    if freq_v2_l:
+        module_suffix += '_freqv2{}'.format(freq_v2_l)
+    if freq_v3_l:
+        module_suffix += '_freqv3{}'.format(freq_v3_l)
+    if freq_v4_l:
+        module_suffix += '_freqv4{}'.format(freq_v4_l)
+    if sgf_l:
+        module_suffix += '_sgf{}'.format(sgf_l)
+
+    fusion_mode = getattr(args, 'fusion_mode', 'serial')
+    if fusion_mode == 'parallel':
+        module_suffix += '_parallel'
+
+    freq_loss_alpha = getattr(args, 'freq_loss_alpha', 1.0)
+    if freq_loss_alpha < 1.0:
+        module_suffix += '_fredf{}'.format(str(freq_loss_alpha).replace('.', ''))
+
+    return module_suffix
+
+
+def build_setting(args, fix_seed):
+    module_suffix = build_module_suffix(args)
+    return '{}_{}_{}_ft{}_sl{}_pl{}_cycle{}_{}{}_seed{}'.format(
+        args.model_id,
+        args.model,
+        args.data,
+        args.features,
+        args.seq_len,
+        args.pred_len,
+        args.cycle,
+        args.model_type,
+        module_suffix,
+        fix_seed)
+
+
+def load_sgf_prior(args):
+    sgf_l = getattr(args, 'sgf_layers', 0)
+    if sgf_l and hasattr(args, 'sgf_prior_path') and args.sgf_prior_path:
+        if os.path.exists(args.sgf_prior_path):
+            args.sgf_prior = np.load(args.sgf_prior_path)
+            print(f'Loaded SGF prior from {args.sgf_prior_path}, shape={args.sgf_prior.shape}')
+        else:
+            print(f'WARNING: SGF prior file not found: {args.sgf_prior_path}, using fallback')
+            args.sgf_prior = None
+    else:
+        args.sgf_prior = None
+
+
 if args.is_training:
     for ii in range(args.itr):
 
         # setting record of experiments
-        # Build module suffix for result tracking
-        mrt_l = getattr(args, 'mrt_layers', 0)
-        freq_l = getattr(args, 'freq_layers', 0)
-        freq_v2_l = getattr(args, 'freq_v2_layers', 0)
-        freq_v3_l = getattr(args, 'freq_v3_layers', 0)
-        freq_v4_l = getattr(args, 'freq_v4_layers', 0)
-        sgf_l = getattr(args, 'sgf_layers', 0)
-        module_suffix = ''
-        # Track cycle mode deviations from default
-        cycle_mode = getattr(args, 'cycle_mode', 'lookup')
-        if cycle_mode == 'lowrank':
-            module_suffix += '_lowrank{}'.format(getattr(args, 'cycle_rank', 4))
-        if mrt_l:
-            module_suffix += '_mrt{}'.format(mrt_l)
-        if freq_l:
-            module_suffix += '_freq{}'.format(freq_l)
-        if freq_v2_l:
-            module_suffix += '_freqv2{}'.format(freq_v2_l)
-        if freq_v3_l:
-            module_suffix += '_freqv3{}'.format(freq_v3_l)
-        if freq_v4_l:
-            module_suffix += '_freqv4{}'.format(freq_v4_l)
-        if sgf_l:
-            module_suffix += '_sgf{}'.format(sgf_l)
-        freq_loss_alpha = getattr(args, 'freq_loss_alpha', 1.0)
-        if freq_loss_alpha < 1.0:
-            module_suffix += '_fredf{}'.format(str(freq_loss_alpha).replace('.', ''))
-
-        setting = '{}_{}_{}_ft{}_sl{}_pl{}_cycle{}_{}{}_seed{}'.format(
-            args.model_id,
-            args.model,
-            args.data,
-            args.features,
-            args.seq_len,
-            args.pred_len,
-            args.cycle,
-            args.model_type,
-            module_suffix,
-            fix_seed)
+        setting = build_setting(args, fix_seed)
 
         # Load SGF stability prior if needed
-        if sgf_l and hasattr(args, 'sgf_prior_path') and args.sgf_prior_path:
-            import numpy as np
-            if os.path.exists(args.sgf_prior_path):
-                args.sgf_prior = np.load(args.sgf_prior_path)
-                print(f'Loaded SGF prior from {args.sgf_prior_path}, shape={args.sgf_prior.shape}')
-            else:
-                print(f'WARNING: SGF prior file not found: {args.sgf_prior_path}, using fallback')
-                args.sgf_prior = None
-        else:
-            args.sgf_prior = None
+        load_sgf_prior(args)
 
         exp = Exp(args)  # set experiments
         print('>>>>>>>start training : {}>>>>>>>>>>>>>>>>>>>>>>>>>>'.format(setting))
@@ -208,25 +230,8 @@ if args.is_training:
         torch.cuda.empty_cache()
 else:
     ii = 0
-    mrt_l = getattr(args, 'mrt_layers', 0)
-    module_suffix = ''
-    cycle_mode = getattr(args, 'cycle_mode', 'lookup')
-    if cycle_mode == 'lowrank':
-        module_suffix += '_lowrank{}'.format(getattr(args, 'cycle_rank', 4))
-    if mrt_l:
-        module_suffix = '_mrt{}'.format(mrt_l)
-
-    setting = '{}_{}_{}_ft{}_sl{}_pl{}_cycle{}_{}{}_seed{}'.format(
-        args.model_id,
-        args.model,
-        args.data,
-        args.features,
-        args.seq_len,
-        args.pred_len,
-        args.cycle,
-        args.model_type,
-        module_suffix,
-        fix_seed)
+    setting = build_setting(args, fix_seed)
+    load_sgf_prior(args)
 
     exp = Exp(args)  # set experiments
     print('>>>>>>>testing : {}<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<'.format(setting))

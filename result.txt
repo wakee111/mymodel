@@ -1300,3 +1300,90 @@ mse:0.17082710564136505, mae:0.2644575834274292
 electricity_96_720_CycleNet_custom_ftM_sl96_pl720_cycle168_mlp_freq1_seed2024  
 mse:0.21152573823928833, mae:0.3003934919834137
 
+Solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_freq1_seed2024  
+mse:0.1843472719192505, mae:0.2527896761894226
+
+Solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_freq1_seed2024  
+mse:0.19868506491184235, mae:0.2625080943107605
+
+Solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_freq1_seed2024  
+mse:0.21383099257946014, mae:0.2616237699985504
+
+Solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_lowrank4_mrt1_freq1_fredf08_seed2024  
+mse:0.17779923975467682, mae:0.23837853968143463
+
+Solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_freq1_seed2024  
+mse:0.21334969997406006, mae:0.2629244029521942
+
+Solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_lowrank4_mrt1_freq1_fredf08_seed2024  
+mse:0.20610439777374268, mae:0.2578880488872528
+
+Solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_lowrank4_mrt1_freq1_fredf08_seed2024  
+mse:0.22867682576179504, mae:0.26605385541915894
+
+Solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_lowrank4_mrt1_freq1_fredf08_seed2024  
+mse:0.2261597365140915, mae:0.26855623722076416
+
+Solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_freq1_fredf08_seed2024  
+mse:0.1750585436820984, mae:0.23877060413360596
+
+Solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_freq1_fredf08_seed2024  
+mse:0.20646049082279205, mae:0.2593449354171753
+
+Solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_freq1_fredf08_seed2024  
+mse:0.20953068137168884, mae:0.255620539188385
+
+Solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_freq1_fredf08_seed2024  
+mse:0.2157757729291916, mae:0.2571609914302826
+
+Traffic_96_96_CycleNet_custom_ftM_sl96_pl96_cycle168_mlp_lowrank6_freq1_seed2024  
+mse:0.4409260153770447, mae:0.2882329821586609
+
+Traffic_96_96_CycleNet_custom_ftM_sl96_pl96_cycle168_mlp_lowrank6_mrt1_freq1_seed2024  
+mse:0.4408734142780304, mae:0.290141224861145
+
+Traffic_96_96_CycleNet_custom_ftM_sl96_pl96_cycle168_mlp_lowrank6_mrt1_freq1_fredf08_seed2024  
+mse:0.4387519061565399, mae:0.28787294030189514
+
+Traffic_96_192_CycleNet_custom_ftM_sl96_pl192_cycle168_mlp_seed2024  
+mse:0.4564249515533447, mae:0.2939814031124115
+
+Traffic_96_192_CycleNet_custom_ftM_sl96_pl192_cycle168_mlp_lowrank6_freq1_seed2024  
+mse:0.4505631625652313, mae:0.2922559082508087
+
+Traffic_96_192_CycleNet_custom_ftM_sl96_pl192_cycle168_mlp_lowrank6_mrt1_freq1_seed2024  
+mse:0.4518757164478302, mae:0.293654203414917
+
+Traffic_96_192_CycleNet_custom_ftM_sl96_pl192_cycle168_mlp_lowrank6_mrt1_freq1_fredf08_seed2024  
+mse:0.44948118925094604, mae:0.29137229919433594
+
+Traffic_96_96_CycleNet_custom_ftM_sl96_pl96_cycle168_mlp_lowrank4_mrt1_freq1_fredf08_seed2024  
+mse:0.43591073155403137, mae:0.29069384932518005
+
+Traffic_96_336_CycleNet_custom_ftM_sl96_pl336_cycle168_mlp_seed2024  
+mse:0.47044453024864197, mae:0.2996136248111725
+
+Traffic_96_192_CycleNet_custom_ftM_sl96_pl192_cycle168_mlp_lowrank4_mrt1_freq1_fredf08_seed2024  
+mse:0.4505903124809265, mae:0.294832706451416
+
+Traffic_96_96_CycleNet_custom_ftM_sl96_pl96_cycle168_mlp_lowrank4_freq1_seed2024  
+mse:0.4359052777290344, mae:0.2922087609767914
+
+Traffic_96_192_CycleNet_custom_ftM_sl96_pl192_cycle168_mlp_lowrank6_mrt1_seed2024  
+mse:0.4512781500816345, mae:0.2939077913761139
+
+solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_freq1_parallel_seed2024  
+mse:0.1820707619190216, mae:0.252435564994812
+
+solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_freq1_parallel_seed2024  
+mse:0.208525151014328, mae:0.2564748227596283
+
+Traffic_96_192_CycleNet_custom_ftM_sl96_pl192_cycle168_mlp_lowrank4_freq1_seed2024  
+mse:0.4449876546859741, mae:0.294612318277359
+
+solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_freq1_parallel_seed2024  
+mse:0.20536726713180542, mae:0.2664947211742401
+
+solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_freq1_parallel_seed2024  
+mse:0.21241439878940582, mae:0.262935996055603
+

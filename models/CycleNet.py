@@ -39,6 +39,8 @@ class Model(nn.Module):
         self.use_revin = configs.use_revin
 
         # Optional layer counts (0 = disabled)
+        self.fusion_mode = getattr(configs, 'fusion_mode', 'serial')
+        assert self.fusion_mode in ['serial', 'parallel']
         self.mrt_layers = getattr(configs, 'mrt_layers', 0)
         self.freq_layers = getattr(configs, 'freq_layers', 0)
         self.freq_v2_layers = getattr(configs, 'freq_v2_layers', 0)
@@ -121,6 +123,42 @@ class Model(nn.Module):
                 nn.Linear(self.d_model, self.pred_len)
             )
 
+    def _run_mrt_branch(self, x):
+        for mrt in self.mrt_blocks:
+            x = mrt(x)
+        return x
+
+    def _run_freq_branch(self, x):
+        for freq in self.freq_blocks:
+            x = freq(x)
+
+        for freq_v2 in self.freq_v2_blocks:
+            x = freq_v2(x)
+
+        for freq_v3 in self.freq_v3_blocks:
+            x = freq_v3(x)
+
+        for freq_v4 in self.freq_v4_blocks:
+            x = freq_v4(x)
+
+        for sgf in self.sgf_blocks:
+            x = sgf(x)
+
+        return x
+
+    def _enhance_residual(self, x):
+        if self.fusion_mode == 'serial':
+            x = self._run_mrt_branch(x)
+            x = self._run_freq_branch(x)
+            return x
+
+        x_base = x
+        x_mrt = self._run_mrt_branch(x_base)
+        x_freq = self._run_freq_branch(x_base)
+
+        # Fuse only branch deltas; x_mrt/x_freq already include x_base.
+        return x_base + (x_mrt - x_base) + (x_freq - x_base)
+
     def forward(self, x, cycle_index):
         # x: (batch_size, seq_len, enc_in), cycle_index: (batch_size,)
 
@@ -136,29 +174,8 @@ class Model(nn.Module):
         # Permute to [B, C, L] for enhancement modules
         x = x.permute(0, 2, 1)  # [B, L, C] → [B, C, L]
 
-        # MRT: multi-resolution trend extraction on residual (low-frequency)
-        for mrt in self.mrt_blocks:
-            x = mrt(x)
-
-        # FreqFilter: frequency-domain spectral filtering (sub-harmonics)
-        for freq in self.freq_blocks:
-            x = freq(x)
-
-        # FreqFilterV2: complex-weight spectral filtering (magnitude + phase)
-        for freq_v2 in self.freq_v2_blocks:
-            x = freq_v2(x)
-
-        # FreqFilterV3: adaptive spectral filtering (input-dependent mask)
-        for freq_v3 in self.freq_v3_blocks:
-            x = freq_v3(x)
-
-        # FreqFilterV4: band-basis spectral filtering
-        for freq_v4 in self.freq_v4_blocks:
-            x = freq_v4(x)
-
-        # SGF: stability-guided frequency gate (prior-initialized)
-        for sgf in self.sgf_blocks:
-            x = sgf(x)
+        # Enhancement modules on cycle-removed residual.
+        x = self._enhance_residual(x)
 
         # forecasting with channel independence (parameters-sharing)
         y = self.model(x).permute(0, 2, 1)
