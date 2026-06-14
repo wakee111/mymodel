@@ -41,6 +41,14 @@ class Model(nn.Module):
         # Optional layer counts (0 = disabled)
         self.fusion_mode = getattr(configs, 'fusion_mode', 'serial')
         assert self.fusion_mode in ['serial', 'parallel']
+        self.fusion_order = getattr(configs, 'fusion_order', 'mrt_freq')
+        self.fusion_gate = getattr(configs, 'fusion_gate', 0)
+
+        # Learnable gate parameters for parallel fusion
+        if self.fusion_gate:
+            self.alpha = nn.Parameter(torch.zeros(1, self.enc_in, 1))
+            self.beta  = nn.Parameter(torch.zeros(1, self.enc_in, 1))
+
         self.mrt_layers = getattr(configs, 'mrt_layers', 0)
         self.freq_layers = getattr(configs, 'freq_layers', 0)
         self.freq_v2_layers = getattr(configs, 'freq_v2_layers', 0)
@@ -146,18 +154,32 @@ class Model(nn.Module):
 
         return x
 
-    def _enhance_residual(self, x):
-        if self.fusion_mode == 'serial':
+    def _serial_fuse(self, x):
+        """Serial enhancement with controllable order."""
+        if self.fusion_order == 'mrt_freq':
             x = self._run_mrt_branch(x)
             x = self._run_freq_branch(x)
-            return x
+        else:
+            x = self._run_freq_branch(x)
+            x = self._run_mrt_branch(x)
+        return x
 
+    def _enhance_residual(self, x):
+        if self.fusion_mode == 'serial':
+            return self._serial_fuse(x)
+
+        # Parallel mode: fuse only branch deltas.
         x_base = x
-        x_mrt = self._run_mrt_branch(x_base)
-        x_freq = self._run_freq_branch(x_base)
+        x_mrt = self._run_mrt_branch(x_base) if self.mrt_layers > 0 else x_base
+        x_freq = self._run_freq_branch(x_base) if (self.freq_layers > 0 or self.freq_v2_layers > 0 or self.freq_v3_layers > 0 or self.freq_v4_layers > 0 or self.sgf_layers > 0) else x_base
 
-        # Fuse only branch deltas; x_mrt/x_freq already include x_base.
-        return x_base + (x_mrt - x_base) + (x_freq - x_base)
+        d_mrt = x_mrt - x_base
+        d_freq = x_freq - x_base
+
+        if self.fusion_gate:
+            return x_base + torch.tanh(self.alpha) * d_mrt + torch.tanh(self.beta) * d_freq
+
+        return x_base + d_mrt + d_freq
 
     def forward(self, x, cycle_index):
         # x: (batch_size, seq_len, enc_in), cycle_index: (batch_size,)

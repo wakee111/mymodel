@@ -1387,3 +1387,27 @@ mse:0.20536726713180542, mae:0.2664947211742401
 solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_freq1_parallel_seed2024  
 mse:0.21241439878940582, mae:0.262935996055603
 
+Solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_stage1_seed2024  
+mse:0.18167239427566528, mae:0.25105202198028564, smape:41.27410352230072
+
+Solar_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_freq1_stage3_seed2024  
+mse:0.18365159630775452, mae:0.2475811243057251, smape:40.75008034706116
+
+Solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_stage1_seed2024  
+mse:0.20830094814300537, mae:0.2609008848667145, smape:41.02713167667389
+
+Solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_stage1_seed2024  
+mse:0.2052650898694992, mae:0.2657436430454254, smape:42.192378640174866
+
+Solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_stage1_seed2024  
+mse:0.21103790402412415, mae:0.2610940635204315, smape:40.57496190071106
+
+Solar_96_336_CycleNet_Solar_ftM_sl96_pl336_cycle144_mlp_mrt1_freq1_stage3_seed2024  
+mse:0.20364807546138763, mae:0.2555181384086609, smape:40.17152488231659
+
+Solar_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_freq1_stage3_seed2024  
+mse:0.19508032500743866, mae:0.2531135678291321, smape:40.50711989402771
+
+Solar_96_720_CycleNet_Solar_ftM_sl96_pl720_cycle144_mlp_mrt1_freq1_stage3_seed2024  
+mse:0.20844519138336182, mae:0.2562600076198578, smape:39.92720544338226
+

@@ -51,6 +51,10 @@ parser.add_argument('--sgf_prior_path', type=str, default='', help='Path to stab
 parser.add_argument('--freq_loss_alpha', type=float, default=1.0, help='FreDF frequency loss weight: alpha*MSE + (1-alpha)*MAE(FFT). 1.0 = pure MSE (default)')
 parser.add_argument('--fusion_mode', type=str, default='serial', choices=['serial', 'parallel'],
                     help='Enhancement module fusion: serial (default) or parallel residual-delta fusion')
+parser.add_argument('--fusion_order', type=str, default='mrt_freq', choices=['mrt_freq', 'freq_mrt'],
+                    help='Serial fusion order: mrt_freq (MRT first) or freq_mrt (Freq first)')
+parser.add_argument('--fusion_gate', type=int, default=0,
+                    help='Parallel fusion: 0=plain sum of deltas, 1=learnable gate (alpha, beta)')
 
 # DLinear
 #parser.add_argument('--individual', action='store_true', default=False, help='DLinear: a linear layer for each variate(channel) individually')
@@ -171,6 +175,12 @@ def build_module_suffix(args):
     fusion_mode = getattr(args, 'fusion_mode', 'serial')
     if fusion_mode == 'parallel':
         module_suffix += '_parallel'
+    fusion_order = getattr(args, 'fusion_order', 'mrt_freq')
+    if fusion_order == 'freq_mrt':
+        module_suffix += '_fmt'
+    fusion_gate = getattr(args, 'fusion_gate', 0)
+    if fusion_gate:
+        module_suffix += '_gate'
 
     freq_loss_alpha = getattr(args, 'freq_loss_alpha', 1.0)
     if freq_loss_alpha < 1.0:
