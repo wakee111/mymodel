@@ -1,0 +1,147 @@
+Device: cuda:0
+Dataset: etth1 | Pred len: 192 | Seed: 2024
+Stage3 FreDF: False
+
+============================================================
+STAGE 1: Train MRT only (freq_layers=0)
+============================================================
+train 8353
+val 2689
+test 2689
+Epoch: 1, Steps: 32 | Train: 0.5406128 Vali: 1.1294357 Test: 0.5234287
+Validation loss decreased (inf --> 1.129436).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 2, Steps: 32 | Train: 0.5031450 Vali: 1.0716809 Test: 0.4808422
+Validation loss decreased (1.129436 --> 1.071681).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 3, Steps: 32 | Train: 0.4232656 Vali: 1.0142131 Test: 0.4498642
+Validation loss decreased (1.071681 --> 1.014213).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 4, Steps: 32 | Train: 0.4077881 Vali: 1.0109910 Test: 0.4368203
+Validation loss decreased (1.014213 --> 1.010991).  Saving model ...
+Updating learning rate to 0.004
+Epoch: 5, Steps: 32 | Train: 0.4007006 Vali: 0.9999163 Test: 0.4362767
+Validation loss decreased (1.010991 --> 0.999916).  Saving model ...
+Updating learning rate to 0.0032000000000000006
+Epoch: 6, Steps: 32 | Train: 0.3962249 Vali: 1.0031198 Test: 0.4404547
+EarlyStopping counter: 1 out of 15
+Updating learning rate to 0.0025600000000000006
+Epoch: 7, Steps: 32 | Train: 0.3917125 Vali: 1.0066032 Test: 0.4370311
+EarlyStopping counter: 2 out of 15
+Updating learning rate to 0.0020480000000000003
+Epoch: 8, Steps: 32 | Train: 0.3883036 Vali: 1.0088342 Test: 0.4406415
+EarlyStopping counter: 3 out of 15
+Updating learning rate to 0.0016384000000000004
+Epoch: 9, Steps: 32 | Train: 0.3852930 Vali: 1.0123942 Test: 0.4422698
+EarlyStopping counter: 4 out of 15
+Updating learning rate to 0.0013107200000000005
+Epoch: 10, Steps: 32 | Train: 0.3829790 Vali: 1.0091863 Test: 0.4428469
+EarlyStopping counter: 5 out of 15
+Updating learning rate to 0.0010485760000000005
+Epoch: 11, Steps: 32 | Train: 0.3805776 Vali: 1.0211621 Test: 0.4406403
+EarlyStopping counter: 6 out of 15
+Updating learning rate to 0.0008388608000000005
+Epoch: 12, Steps: 32 | Train: 0.3783157 Vali: 1.0129524 Test: 0.4407123
+EarlyStopping counter: 7 out of 15
+Updating learning rate to 0.0006710886400000003
+Epoch: 13, Steps: 32 | Train: 0.3781952 Vali: 1.0119179 Test: 0.4423286
+EarlyStopping counter: 8 out of 15
+Updating learning rate to 0.0005368709120000003
+Epoch: 14, Steps: 32 | Train: 0.3766756 Vali: 1.0081987 Test: 0.4410650
+EarlyStopping counter: 9 out of 15
+Updating learning rate to 0.0004294967296000003
+Epoch: 15, Steps: 32 | Train: 0.3748761 Vali: 1.0159211 Test: 0.4403943
+EarlyStopping counter: 10 out of 15
+Updating learning rate to 0.0003435973836800002
+Epoch: 16, Steps: 32 | Train: 0.3749520 Vali: 1.0086834 Test: 0.4409803
+EarlyStopping counter: 11 out of 15
+Updating learning rate to 0.0002748779069440002
+Epoch: 17, Steps: 32 | Train: 0.3739263 Vali: 1.0214508 Test: 0.4410032
+EarlyStopping counter: 12 out of 15
+Updating learning rate to 0.00021990232555520019
+Epoch: 18, Steps: 32 | Train: 0.3730151 Vali: 1.0182537 Test: 0.4414856
+EarlyStopping counter: 13 out of 15
+Updating learning rate to 0.00017592186044416015
+Epoch: 19, Steps: 32 | Train: 0.3722155 Vali: 1.0159649 Test: 0.4410707
+EarlyStopping counter: 14 out of 15
+Updating learning rate to 0.00014073748835532812
+Epoch: 20, Steps: 32 | Train: 0.3725651 Vali: 1.0157818 Test: 0.4413790
+EarlyStopping counter: 15 out of 15
+Early stopping at epoch 20
+STAGE 1 RESULT: mse=0.4338, mae=0.4258, smape=76.5407
+
+============================================================
+STAGE 2: Load MRT + add Freq branch (frozen backbone/MRT/cycle)
+============================================================
+train 8353
+val 2689
+test 2689
+Loaded 10 params from stage1, 0 new (Freq branch)
+Trainable: 344 / 148,757 (0.2%)
+Epoch: 1, Train: 0.3952305 Vali: 1.0056853
+Validation loss decreased (inf --> 1.005685).  Saving model ...
+Epoch: 2, Train: 0.3961939 Vali: 1.0127988
+EarlyStopping counter: 1 out of 3
+Epoch: 3, Train: 0.3961665 Vali: 1.0077931
+EarlyStopping counter: 2 out of 3
+STAGE 2 complete.
+
+============================================================
+STAGE 3: Unfreeze all, joint fine-tune (LR=0.0015 (pure MSE))
+============================================================
+train 8353
+val 2689
+test 2689
+Loaded stage2 checkpoint, unfreezing all parameters.
+Epoch: 1, Steps: 32 | Train: 0.3946873 Vali: 1.0047233 Test: 0.4368569
+Validation loss decreased (inf --> 1.004723).  Saving model ...
+Updating learning rate to 0.0015
+Epoch: 2, Steps: 32 | Train: 0.3960040 Vali: 1.0083917 Test: 0.4418440
+EarlyStopping counter: 1 out of 15
+Updating learning rate to 0.0015
+Epoch: 3, Steps: 32 | Train: 0.3901535 Vali: 1.0101268 Test: 0.4425430
+EarlyStopping counter: 2 out of 15
+Updating learning rate to 0.0015
+Epoch: 4, Steps: 32 | Train: 0.3865837 Vali: 1.0125439 Test: 0.4415553
+EarlyStopping counter: 3 out of 15
+Updating learning rate to 0.0012000000000000001
+Epoch: 5, Steps: 32 | Train: 0.3830812 Vali: 1.0144851 Test: 0.4388687
+EarlyStopping counter: 4 out of 15
+Updating learning rate to 0.0009600000000000002
+Epoch: 6, Steps: 32 | Train: 0.3797945 Vali: 1.0134822 Test: 0.4398504
+EarlyStopping counter: 5 out of 15
+Updating learning rate to 0.0007680000000000002
+Epoch: 7, Steps: 32 | Train: 0.3768727 Vali: 1.0153556 Test: 0.4429963
+EarlyStopping counter: 6 out of 15
+Updating learning rate to 0.0006144000000000001
+Epoch: 8, Steps: 32 | Train: 0.3747580 Vali: 1.0083194 Test: 0.4404671
+EarlyStopping counter: 7 out of 15
+Updating learning rate to 0.0004915200000000002
+Epoch: 9, Steps: 32 | Train: 0.3725676 Vali: 1.0098752 Test: 0.4430095
+EarlyStopping counter: 8 out of 15
+Updating learning rate to 0.00039321600000000016
+Epoch: 10, Steps: 32 | Train: 0.3711240 Vali: 1.0047505 Test: 0.4419616
+EarlyStopping counter: 9 out of 15
+Updating learning rate to 0.0003145728000000001
+Epoch: 11, Steps: 32 | Train: 0.3704751 Vali: 1.0105997 Test: 0.4441211
+EarlyStopping counter: 10 out of 15
+Updating learning rate to 0.00025165824000000016
+Epoch: 12, Steps: 32 | Train: 0.3692499 Vali: 1.0103165 Test: 0.4426531
+EarlyStopping counter: 11 out of 15
+Updating learning rate to 0.0002013265920000001
+Epoch: 13, Steps: 32 | Train: 0.3683070 Vali: 1.0077346 Test: 0.4426014
+EarlyStopping counter: 12 out of 15
+Updating learning rate to 0.0001610612736000001
+Epoch: 14, Steps: 32 | Train: 0.3673821 Vali: 1.0125896 Test: 0.4434571
+EarlyStopping counter: 13 out of 15
+Updating learning rate to 0.00012884901888000007
+Epoch: 15, Steps: 32 | Train: 0.3670025 Vali: 1.0149779 Test: 0.4424866
+EarlyStopping counter: 14 out of 15
+Updating learning rate to 0.00010307921510400006
+Epoch: 16, Steps: 32 | Train: 0.3664217 Vali: 1.0141148 Test: 0.4438477
+EarlyStopping counter: 15 out of 15
+Early stopping at epoch 16
+
+============================================================
+FINAL RESULT: mse=0.4349, mae=0.4260, smape=76.9146
+============================================================
