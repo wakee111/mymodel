@@ -398,15 +398,16 @@ def stage2_add_freq_and_freeze(args, device, stage1_ckpt):
     return stage2_path
 
 
-def stage3_joint_finetune(args, device, stage2_ckpt):
+def stage3_joint_finetune(args, device, stage2_ckpt, use_fredf=False):
     """Unfreeze all, joint fine-tune with lower LR."""
+    fredf_tag = ' + FreDF(α=0.8)' if use_fredf else ' (pure MSE)'
     print('\n' + '='*60)
-    print('STAGE 3: Unfreeze all, joint fine-tune (LR=0.003, pure MSE)')
+    print('STAGE 3: Unfreeze all, joint fine-tune (LR=0.003{})'.format(fredf_tag))
     print('='*60)
 
     args.mrt_layers = 1
     args.freq_layers = 1
-    args.freq_loss_alpha = 1.0  # pure MSE (FreDF disabled)
+    args.freq_loss_alpha = 0.8 if use_fredf else 1.0
     args.train_epochs = 30
     args.patience = 15
     args.learning_rate = 0.003  # lower LR for joint tuning
@@ -472,12 +473,14 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--pred_len', type=int, required=True, choices=[96, 192, 336, 720])
     parser.add_argument('--seed', type=int, default=2024)
+    parser.add_argument('--gpu', type=int, default=0, help='GPU device id')
     parser.add_argument('--stage1_only', action='store_true', help='Only run stage 1')
+    parser.add_argument('--stage3_fredf', action='store_true', help='Enable FreDF (α=0.8) in Stage 3 joint fine-tune')
     parser.add_argument('--from_stage2', type=str, default='', help='Skip to stage 2 with given stage1 ckpt path')
     args_cli = parser.parse_args()
 
     os.chdir(ROOT)
-    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    device = torch.device('cuda:{}'.format(args_cli.gpu) if torch.cuda.is_available() else 'cpu')
     print('Device:', device)
     print('Pred len:', args_cli.pred_len, 'Seed:', args_cli.seed)
 
@@ -497,5 +500,5 @@ if __name__ == '__main__':
     # Stage 2
     stage2_path = stage2_add_freq_and_freeze(base_args, device, stage1_path)
 
-    # Stage 3
-    stage3_joint_finetune(base_args, device, stage2_path)
+    # Stage 3 (with optional FreDF)
+    stage3_joint_finetune(base_args, device, stage2_path, use_fredf=args_cli.stage3_fredf)

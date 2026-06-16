@@ -159,3 +159,13 @@ EarlyStopping counter: 1 out of 15
 Updating learning rate to 0.00014073748835532812
 	iters: 100, epoch: 20 | loss: 0.7486526
 	speed: 0.4728s/iter; left time: 1424.9341s
+	iters: 200, epoch: 20 | loss: 0.7018785
+	speed: 0.1179s/iter; left time: 343.5688s
+Epoch: 20 cost time: 33.806562662124634
+Epoch: 20, Steps: 283 | Train Loss: 0.7410262 Vali Loss: 0.1319434 Test Loss: 0.1608228
+Validation loss decreased (0.132005 --> 0.131943).  Saving model ...
+Updating learning rate to 0.00011258999068426252
+	iters: 100, epoch: 21 | loss: 0.7374082
+	speed: 0.4694s/iter; left time: 1281.9690s
+	iters: 200, epoch: 21 | loss: 0.7611521
+	speed: 0.1047s/iter; left time: 275.4144s

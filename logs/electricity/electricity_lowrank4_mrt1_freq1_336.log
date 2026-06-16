@@ -90,3 +90,11 @@ Updating learning rate to 0.0010485760000000005
 	iters: 200, epoch: 11 | loss: 0.1789277
 	speed: 0.1209s/iter; left time: 653.1731s
 Epoch: 11 cost time: 34.83632779121399
+Epoch: 11, Steps: 280 | Train Loss: 0.1750132 Vali Loss: 0.1497264 Test Loss: 0.1746186
+EarlyStopping counter: 2 out of 15
+Updating learning rate to 0.0008388608000000005
+	iters: 100, epoch: 12 | loss: 0.1782715
+	speed: 0.5330s/iter; left time: 2782.8183s
+	iters: 200, epoch: 12 | loss: 0.1835685
+	speed: 0.1192s/iter; left time: 610.2781s
+Epoch: 12 cost time: 35.23221278190613
