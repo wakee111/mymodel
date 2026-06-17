@@ -334,7 +334,7 @@ class Exp_Main(Exp_Basic):
         f.write('\n')
         f.close()
 
-        np.save(folder_path + 'metrics.npy', np.array([mae, mse, rmse, mape, mspe, rse, corr, smape]))
+        np.save(folder_path + 'metrics.npy', np.array([float(mae), float(mse), float(rmse), float(mape), float(mspe), float(rse), float(np.mean(corr)), float(smape)]))
         np.save(folder_path + 'pred.npy', preds)
         np.save(folder_path + 'true.npy', trues)
         np.save(folder_path + 'residual.npy', preds - trues)
