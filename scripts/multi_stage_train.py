@@ -661,14 +661,19 @@ def stage2_add_freq_and_freeze(args, device, stage1_ckpt, cli_args=None):
     model.load_state_dict(model_state)
     print('Loaded {} params from stage1, {} new (Freq branch)'.format(matched, unmatched))
 
-    frozen_prefixes = ['cycleQueue', 'mrt_blocks', 'model']
+    freeze_backbone = getattr(cli_args, 'stage2_freeze_backbone', 1) if cli_args else 1
+    frozen_prefixes = ['cycleQueue', 'mrt_blocks']
+    if freeze_backbone:
+        frozen_prefixes.append('model')
+
     for name, param in model.named_parameters():
         should_freeze = any(name.startswith(p) for p in frozen_prefixes)
         param.requires_grad = not should_freeze
 
     n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     n_total = sum(p.numel() for p in model.parameters())
-    print('Trainable: {:,} / {:,} ({:.1f}%)'.format(n_trainable, n_total, 100*n_trainable/n_total))
+    print('Trainable: {:,} / {:,} ({:.1f}%)  freeze_backbone={}'.format(
+        n_trainable, n_total, 100*n_trainable/n_total, freeze_backbone))
 
     criterion = nn.MSELoss()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.learning_rate)
@@ -682,6 +687,7 @@ def stage2_add_freq_and_freeze(args, device, stage1_ckpt, cli_args=None):
         train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device, args, scheduler, epoch)
         val_loss = validate(model, val_loader, criterion, device, args)
         print('Epoch: {}, Train: {:.7f} Vali: {:.7f}'.format(epoch + 1, train_loss, val_loss))
+        _diagnose_module_state(model, 's2-{}'.format(epoch + 1))
 
         early_stopping(val_loss, model, ckpt_dir)
         if early_stopping.early_stop:
@@ -928,6 +934,8 @@ if __name__ == '__main__':
     parser.add_argument('--gpu', type=int, default=0, help='GPU device id')
     parser.add_argument('--stage1_only', action='store_true', help='Only run stage 1')
     parser.add_argument('--stage2_only', action='store_true', help='Stop after Stage 2, test and exit')
+    parser.add_argument('--stage2_freeze_backbone', type=int, default=1,
+                        help='1=freeze MLP in Stage 2, 0=unfreeze (train Freq+MLP jointly)')
     parser.add_argument('--stage3_fredf', action='store_true', help='Enable FreDF (α=0.8) in Stage 3b')
     parser.add_argument('--from_stage2', type=str, default='', help='Skip to stage 2 with given stage1 ckpt path')
     parser.add_argument('--plan_c', action='store_true',
@@ -1000,7 +1008,9 @@ if __name__ == '__main__':
     print('--- Training ---')
     print('base_lr    :', base_args.learning_rate)
     print('Stage1     : epochs={}, patience={}'.format(base_args.train_epochs, base_args.patience))
-    print('Stage2     : epochs={}, patience={}'.format(args_cli.stage2_epochs, args_cli.stage2_patience))
+    freeze_bb = getattr(args_cli, 'stage2_freeze_backbone', 1)
+    print('Stage2     : epochs={}, patience={}, freeze_backbone={}'.format(
+        args_cli.stage2_epochs, args_cli.stage2_patience, freeze_bb))
     if args_cli.stage2_only:
         print('Stage3     : SKIPPED (stage2_only)')
     else:
