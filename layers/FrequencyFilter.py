@@ -103,3 +103,17 @@ class FrequencyFilterLayer(nn.Module):
 
         # Zero-init residual: x + 0 * out = x at initialization
         return x + self.res_scale * out
+
+    def get_mask(self):
+        """Return current frequency mask [C, N_freq] in (0, 1)."""
+        return torch.sigmoid(self.freq_weights)
+
+    def get_sparsity_loss(self):
+        """Sparsity regularizer: pushes mask away from 0.5 toward 0 or 1.
+
+        mask * (1 - mask) is max at mask=0.5, min at mask=0 or 1.
+        Minimizing this encourages the mask to make a choice per bin
+        instead of staying flat and uninformative.
+        """
+        mask = self.get_mask()
+        return (mask * (1.0 - mask)).mean()

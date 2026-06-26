@@ -190,6 +190,17 @@ class Model(nn.Module):
 
         return x_base + d_mrt + d_freq
 
+    def get_freq_sparsity_loss(self):
+        """Collect sparsity loss from all FrequencyFilter blocks."""
+        loss = 0.0
+        count = 0
+        for block in self.freq_blocks:
+            loss = loss + block.get_sparsity_loss()
+            count += 1
+        if count > 0:
+            return loss / count
+        return torch.tensor(0.0, device=next(self.parameters()).device)
+
     def forward(self, x, cycle_index):
         # x: (batch_size, seq_len, enc_in), cycle_index: (batch_size,)
 
