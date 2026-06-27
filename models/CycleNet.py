@@ -44,13 +44,19 @@ class Model(nn.Module):
         self.fusion_order = getattr(configs, 'fusion_order', 'mrt_freq')
         self.fusion_gate = getattr(configs, 'fusion_gate', 0)
 
-        # Learnable gate parameters for parallel fusion
+        # Learnable per-channel gate parameters for parallel fusion.
+        # Sigmoid-parameterized: gate = sigmoid(logit).
+        # MRT gate starts near 1 (sigmoid(2.0) ≈ 0.88) so warm-start is preserved.
+        # Freq gate starts near 0 (sigmoid(-4.0) ≈ 0.018) to avoid early perturbation.
         if self.fusion_gate:
-            self.alpha = nn.Parameter(torch.zeros(1, self.enc_in, 1))
-            self.beta  = nn.Parameter(torch.zeros(1, self.enc_in, 1))
+            self.gate_mrt_logit = nn.Parameter(torch.full((1, self.enc_in, 1), 2.0))
+            self.gate_freq_logit = nn.Parameter(torch.full((1, self.enc_in, 1), -1.5))  # sigmoid(-1.5)≈0.18
+            print(f'[fusion_gate] init gate_mrt ≈ {torch.sigmoid(self.gate_mrt_logit).mean().item():.4f}, '
+                  f'gate_freq ≈ {torch.sigmoid(self.gate_freq_logit).mean().item():.4f}')
 
         self.mrt_layers = getattr(configs, 'mrt_layers', 0)
         self.freq_layers = getattr(configs, 'freq_layers', 0)
+        self.freq_res_scale_init = getattr(configs, 'freq_res_scale_init', 0.0)
         self.freq_v2_layers = getattr(configs, 'freq_v2_layers', 0)
         self.freq_v3_layers = getattr(configs, 'freq_v3_layers', 0)
         self.freq_v4_layers = getattr(configs, 'freq_v4_layers', 0)
@@ -78,6 +84,7 @@ class Model(nn.Module):
             FrequencyFilterLayer(
                 seq_len=self.seq_len,
                 channel_size=self.enc_in,
+                res_scale_init=self.freq_res_scale_init,
             )
             for _ in range(self.freq_layers)
         ])
@@ -177,9 +184,22 @@ class Model(nn.Module):
         d_freq = x_freq - x_base
 
         if self.fusion_gate:
-            return x_base + torch.tanh(self.alpha) * d_mrt + torch.tanh(self.beta) * d_freq
+            gate_mrt = torch.sigmoid(self.gate_mrt_logit)
+            gate_freq = torch.sigmoid(self.gate_freq_logit)
+            return x_base + gate_mrt * d_mrt + gate_freq * d_freq
 
         return x_base + d_mrt + d_freq
+
+    def get_freq_sparsity_loss(self):
+        """Collect sparsity loss from all FrequencyFilter blocks."""
+        loss = 0.0
+        count = 0
+        for block in self.freq_blocks:
+            loss = loss + block.get_sparsity_loss()
+            count += 1
+        if count > 0:
+            return loss / count
+        return torch.tensor(0.0, device=next(self.parameters()).device)
 
     def forward(self, x, cycle_index):
         # x: (batch_size, seq_len, enc_in), cycle_index: (batch_size,)

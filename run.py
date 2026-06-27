@@ -54,7 +54,7 @@ parser.add_argument('--fusion_mode', type=str, default='serial', choices=['seria
 parser.add_argument('--fusion_order', type=str, default='mrt_freq', choices=['mrt_freq', 'freq_mrt'],
                     help='Serial fusion order: mrt_freq (MRT first) or freq_mrt (Freq first)')
 parser.add_argument('--fusion_gate', type=int, default=0,
-                    help='Parallel fusion: 0=plain sum of deltas, 1=learnable gate (alpha, beta)')
+                    help='Parallel fusion: 0=plain sum of deltas, 1=learnable per-channel sigmoid gate (gate_mrt*sigmoid(2)≈0.88, gate_freq*sigmoid(-4)≈0.018)')
 
 # DLinear
 #parser.add_argument('--individual', action='store_true', default=False, help='DLinear: a linear layer for each variate(channel) individually')

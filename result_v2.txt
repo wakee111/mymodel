@@ -1,0 +1,15 @@
+ETTH1_96_720_CycleNet_ETTh1_ftM_sl96_pl720_cycle24_mlp_mrt1_freq1_rsn01_ep25_stage2_seed2024  
+mse:0.5581035614013672, mae:0.509156346321106, smape:90.10623693466187
+
+ETTH1_96_192_CycleNet_ETTh1_ftM_sl96_pl192_cycle24_mlp_mrt1_freq1_rs00_ep25_stage2_seed2024  
+mse:0.4347054660320282, mae:0.4259355068206787, smape:76.88465118408203
+
+ETTH1_96_96_CycleNet_ETTh1_ftM_sl96_pl96_cycle24_mlp_mrt1_freq1_rs00_ep25_stage2_seed2024  
+mse:0.3853122591972351, mae:0.4045458436012268, smape:74.73296523094177
+
+SOLAR_96_96_CycleNet_Solar_ftM_sl96_pl96_cycle144_mlp_mrt1_freq1_rs00_ep25_stage2_seed2024  
+mse:0.18113286793231964, mae:0.24348345398902893, smape:40.186333656311035
+
+SOLAR_96_192_CycleNet_Solar_ftM_sl96_pl192_cycle144_mlp_mrt1_freq1_rs00_ep25_stage2_seed2024  
+mse:0.1973099559545517, mae:0.2547174096107483, smape:40.74357450008392
+

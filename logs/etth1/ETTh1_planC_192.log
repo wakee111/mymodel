@@ -1,0 +1,189 @@
+Device: cuda:0
+Dataset: etth1 | Pred len: 192 | Seed: 2024
+Stage3 FreDF: False
+Stage2: max_epochs=3, patience=3
+Stage3a: max_epochs=12, patience=6
+Stage3b: max_epochs=20, patience=10, LR mults: freq×0.67 model×0.33 mrt×0.10
+Fusion: mode=serial, gate=0, sparsity_lambda=0.0
+Skipping stage 1, using checkpoint: checkpoints/ETTH1_96_192_CycleNet_ETTh1_ftM_sl96_pl192_cycle24_mlp_mrt1_stage1_seed2024/checkpoint.pth
+
+############################################################
+#  PLAN C: MRT & Freq as separate experts → merge
+############################################################
+
+============================================================
+STAGE 2': Train Freq ONLY from scratch (mrt_layers=0, freq_layers=1)
+============================================================
+train 8353
+val 2689
+test 2689
+Epoch: 1, Steps: 32 | Train: 0.5391106 Vali: 1.1309867 Test: 0.5223870
+[diag 2'-1]  freq.rs=-0.0015 mask.mean=0.438 mask.std=0.141
+Validation loss decreased (inf --> 1.130987).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 2, Steps: 32 | Train: 0.4963186 Vali: 1.0559725 Test: 0.4700398
+[diag 2'-2]  freq.rs=-0.0938 mask.mean=0.451 mask.std=0.144
+Validation loss decreased (1.130987 --> 1.055972).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 3, Steps: 32 | Train: 0.4227014 Vali: 1.0134528 Test: 0.4525347
+[diag 2'-3]  freq.rs=-0.1639 mask.mean=0.467 mask.std=0.148
+Validation loss decreased (1.055972 --> 1.013453).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 4, Steps: 32 | Train: 0.4082602 Vali: 1.0055935 Test: 0.4354762
+[diag 2'-4]  freq.rs=-0.1970 mask.mean=0.480 mask.std=0.156
+Validation loss decreased (1.013453 --> 1.005593).  Saving model ...
+Updating learning rate to 0.004
+Epoch: 5, Steps: 32 | Train: 0.4006883 Vali: 1.0220493 Test: 0.4425775
+[diag 2'-5]  freq.rs=-0.2107 mask.mean=0.488 mask.std=0.162
+EarlyStopping counter: 1 out of 15
+Updating learning rate to 0.0032000000000000006
+Epoch: 6, Steps: 32 | Train: 0.3951895 Vali: 1.0165649 Test: 0.4383180
+[diag 2'-6]  freq.rs=-0.2182 mask.mean=0.493 mask.std=0.167
+EarlyStopping counter: 2 out of 15
+Updating learning rate to 0.0025600000000000006
+Epoch: 7, Steps: 32 | Train: 0.3907091 Vali: 1.0055790 Test: 0.4417899
+[diag 2'-7]  freq.rs=-0.2245 mask.mean=0.497 mask.std=0.171
+Validation loss decreased (1.005593 --> 1.005579).  Saving model ...
+Updating learning rate to 0.0020480000000000003
+Epoch: 8, Steps: 32 | Train: 0.3876427 Vali: 1.0113101 Test: 0.4378132
+[diag 2'-8]  freq.rs=-0.2294 mask.mean=0.499 mask.std=0.174
+EarlyStopping counter: 1 out of 15
+Updating learning rate to 0.0016384000000000004
+Epoch: 9, Steps: 32 | Train: 0.3842071 Vali: 1.0120263 Test: 0.4406597
+[diag 2'-9]  freq.rs=-0.2332 mask.mean=0.501 mask.std=0.176
+EarlyStopping counter: 2 out of 15
+Updating learning rate to 0.0013107200000000005
+Epoch: 10, Steps: 32 | Train: 0.3820997 Vali: 1.0135085 Test: 0.4406497
+[diag 2'-10]  freq.rs=-0.2353 mask.mean=0.502 mask.std=0.178
+EarlyStopping counter: 3 out of 15
+Updating learning rate to 0.0010485760000000005
+Epoch: 11, Steps: 32 | Train: 0.3797737 Vali: 1.0091430 Test: 0.4406461
+[diag 2'-11]  freq.rs=-0.2367 mask.mean=0.502 mask.std=0.180
+EarlyStopping counter: 4 out of 15
+Updating learning rate to 0.0008388608000000005
+Epoch: 12, Steps: 32 | Train: 0.3779963 Vali: 1.0102580 Test: 0.4398824
+[diag 2'-12]  freq.rs=-0.2382 mask.mean=0.503 mask.std=0.181
+EarlyStopping counter: 5 out of 15
+Updating learning rate to 0.0006710886400000003
+Epoch: 13, Steps: 32 | Train: 0.3771803 Vali: 1.0092720 Test: 0.4417357
+[diag 2'-13]  freq.rs=-0.2388 mask.mean=0.503 mask.std=0.181
+EarlyStopping counter: 6 out of 15
+Updating learning rate to 0.0005368709120000003
+Epoch: 14, Steps: 32 | Train: 0.3755462 Vali: 1.0080126 Test: 0.4405588
+[diag 2'-14]  freq.rs=-0.2392 mask.mean=0.503 mask.std=0.182
+EarlyStopping counter: 7 out of 15
+Updating learning rate to 0.0004294967296000003
+Epoch: 15, Steps: 32 | Train: 0.3740853 Vali: 1.0112213 Test: 0.4438854
+[diag 2'-15]  freq.rs=-0.2393 mask.mean=0.504 mask.std=0.183
+EarlyStopping counter: 8 out of 15
+Updating learning rate to 0.0003435973836800002
+Epoch: 16, Steps: 32 | Train: 0.3738924 Vali: 1.0068030 Test: 0.4414594
+[diag 2'-16]  freq.rs=-0.2393 mask.mean=0.504 mask.std=0.183
+EarlyStopping counter: 9 out of 15
+Updating learning rate to 0.0002748779069440002
+Epoch: 17, Steps: 32 | Train: 0.3733334 Vali: 1.0174573 Test: 0.4418148
+[diag 2'-17]  freq.rs=-0.2394 mask.mean=0.504 mask.std=0.183
+EarlyStopping counter: 10 out of 15
+Updating learning rate to 0.00021990232555520019
+Epoch: 18, Steps: 32 | Train: 0.3725904 Vali: 1.0108040 Test: 0.4408984
+[diag 2'-18]  freq.rs=-0.2396 mask.mean=0.504 mask.std=0.184
+EarlyStopping counter: 11 out of 15
+Updating learning rate to 0.00017592186044416015
+Epoch: 19, Steps: 32 | Train: 0.3725768 Vali: 1.0153052 Test: 0.4433825
+[diag 2'-19]  freq.rs=-0.2394 mask.mean=0.504 mask.std=0.184
+EarlyStopping counter: 12 out of 15
+Updating learning rate to 0.00014073748835532812
+Epoch: 20, Steps: 32 | Train: 0.3712363 Vali: 1.0163574 Test: 0.4416494
+[diag 2'-20]  freq.rs=-0.2395 mask.mean=0.504 mask.std=0.184
+EarlyStopping counter: 13 out of 15
+Updating learning rate to 0.00011258999068426252
+Epoch: 21, Steps: 32 | Train: 0.3703885 Vali: 1.0181033 Test: 0.4419055
+[diag 2'-21]  freq.rs=-0.2394 mask.mean=0.504 mask.std=0.184
+EarlyStopping counter: 14 out of 15
+Updating learning rate to 9.007199254741001e-05
+Epoch: 22, Steps: 32 | Train: 0.3711710 Vali: 1.0141545 Test: 0.4424741
+[diag 2'-22]  freq.rs=-0.2395 mask.mean=0.504 mask.std=0.184
+EarlyStopping counter: 15 out of 15
+Early stopping at epoch 22
+STAGE 2' RESULT: mse=0.4408, mae=0.4314, smape=78.5016
+
+============================================================
+STAGE 3P: Merge MRT(S1) + Freq(S2') experts, PARALLEL fusion + gate
+============================================================
+train 8353
+val 2689
+test 2689
+[fusion_gate] init gate_mrt ≈ 0.8808, gate_freq ≈ 0.1824
+[PlanC gate] init gate_mrt ≈ 0.5000, gate_freq ≈ 0.5000 (balanced experts)
+Loaded: 10 from S1(MRT), 2 from S2'(Freq), 2 fresh
+Trainable: 148,771 params (all unfrozen)
+Epoch: 1, Steps: 32 | Train: 0.3946259 Vali: 1.0014646 Test: 0.4354112
+[diag 3p-1]  freq.rs=-0.2233 mask.mean=0.497 mask.std=0.172  mrt.rs=-0.1147  gate_mrt=0.5000 gate_freq=0.5000
+Validation loss decreased (inf --> 1.001465).  Saving model ...
+Updating learning rate to 0.005
+Epoch: 2, Steps: 32 | Train: 0.3996468 Vali: 1.0120378 Test: 0.4466262
+[diag 3p-2]  freq.rs=-0.3226 mask.mean=0.505 mask.std=0.178  mrt.rs=-0.2295  gate_mrt=0.5209 gate_freq=0.5192
+EarlyStopping counter: 1 out of 15
+Updating learning rate to 0.005
+Epoch: 3, Steps: 32 | Train: 0.3924402 Vali: 1.0072808 Test: 0.4487526
+[diag 3p-3]  freq.rs=-0.4262 mask.mean=0.512 mask.std=0.184  mrt.rs=-0.3002  gate_mrt=0.5426 gate_freq=0.5374
+EarlyStopping counter: 2 out of 15
+Updating learning rate to 0.005
+Epoch: 4, Steps: 32 | Train: 0.3840218 Vali: 1.0164901 Test: 0.4440325
+[diag 3p-4]  freq.rs=-0.5041 mask.mean=0.517 mask.std=0.190  mrt.rs=-0.3476  gate_mrt=0.5551 gate_freq=0.5494
+EarlyStopping counter: 3 out of 15
+Updating learning rate to 0.004
+Epoch: 5, Steps: 32 | Train: 0.3761795 Vali: 1.0188187 Test: 0.4486657
+[diag 3p-5]  freq.rs=-0.5445 mask.mean=0.519 mask.std=0.195  mrt.rs=-0.3707  gate_mrt=0.5601 gate_freq=0.5560
+EarlyStopping counter: 4 out of 15
+Updating learning rate to 0.0032000000000000006
+Epoch: 6, Steps: 32 | Train: 0.3688229 Vali: 1.0157602 Test: 0.4462574
+[diag 3p-6]  freq.rs=-0.5690 mask.mean=0.519 mask.std=0.198  mrt.rs=-0.3790  gate_mrt=0.5615 gate_freq=0.5600
+EarlyStopping counter: 5 out of 15
+Updating learning rate to 0.0025600000000000006
+Epoch: 7, Steps: 32 | Train: 0.3638102 Vali: 1.0162447 Test: 0.4491943
+[diag 3p-7]  freq.rs=-0.5794 mask.mean=0.518 mask.std=0.201  mrt.rs=-0.3802  gate_mrt=0.5618 gate_freq=0.5619
+EarlyStopping counter: 6 out of 15
+Updating learning rate to 0.0020480000000000003
+Epoch: 8, Steps: 32 | Train: 0.3599908 Vali: 1.0219121 Test: 0.4528094
+[diag 3p-8]  freq.rs=-0.5828 mask.mean=0.518 mask.std=0.203  mrt.rs=-0.3776  gate_mrt=0.5613 gate_freq=0.5630
+EarlyStopping counter: 7 out of 15
+Updating learning rate to 0.0016384000000000004
+Epoch: 9, Steps: 32 | Train: 0.3565333 Vali: 1.0306824 Test: 0.4589094
+[diag 3p-9]  freq.rs=-0.5829 mask.mean=0.517 mask.std=0.204  mrt.rs=-0.3807  gate_mrt=0.5616 gate_freq=0.5637
+EarlyStopping counter: 8 out of 15
+Updating learning rate to 0.0013107200000000005
+Epoch: 10, Steps: 32 | Train: 0.3537573 Vali: 1.0322554 Test: 0.4570695
+[diag 3p-10]  freq.rs=-0.5822 mask.mean=0.516 mask.std=0.206  mrt.rs=-0.3755  gate_mrt=0.5611 gate_freq=0.5639
+EarlyStopping counter: 9 out of 15
+Updating learning rate to 0.0010485760000000005
+Epoch: 11, Steps: 32 | Train: 0.3518318 Vali: 1.0327805 Test: 0.4571816
+[diag 3p-11]  freq.rs=-0.5782 mask.mean=0.515 mask.std=0.206  mrt.rs=-0.3668  gate_mrt=0.5598 gate_freq=0.5636
+EarlyStopping counter: 10 out of 15
+Updating learning rate to 0.0008388608000000005
+Epoch: 12, Steps: 32 | Train: 0.3488201 Vali: 1.0282568 Test: 0.4584633
+[diag 3p-12]  freq.rs=-0.5743 mask.mean=0.514 mask.std=0.207  mrt.rs=-0.3626  gate_mrt=0.5592 gate_freq=0.5633
+EarlyStopping counter: 11 out of 15
+Updating learning rate to 0.0006710886400000003
+Epoch: 13, Steps: 32 | Train: 0.3476275 Vali: 1.0202914 Test: 0.4590945
+[diag 3p-13]  freq.rs=-0.5713 mask.mean=0.514 mask.std=0.208  mrt.rs=-0.3589  gate_mrt=0.5587 gate_freq=0.5632
+EarlyStopping counter: 12 out of 15
+Updating learning rate to 0.0005368709120000003
+Epoch: 14, Steps: 32 | Train: 0.3459383 Vali: 1.0266680 Test: 0.4617841
+[diag 3p-14]  freq.rs=-0.5683 mask.mean=0.513 mask.std=0.208  mrt.rs=-0.3553  gate_mrt=0.5583 gate_freq=0.5629
+EarlyStopping counter: 13 out of 15
+Updating learning rate to 0.0004294967296000003
+Epoch: 15, Steps: 32 | Train: 0.3449461 Vali: 1.0314479 Test: 0.4605190
+[diag 3p-15]  freq.rs=-0.5661 mask.mean=0.513 mask.std=0.208  mrt.rs=-0.3525  gate_mrt=0.5579 gate_freq=0.5627
+EarlyStopping counter: 14 out of 15
+Updating learning rate to 0.0003435973836800002
+Epoch: 16, Steps: 32 | Train: 0.3442213 Vali: 1.0311393 Test: 0.4638821
+[diag 3p-16]  freq.rs=-0.5632 mask.mean=0.513 mask.std=0.209  mrt.rs=-0.3491  gate_mrt=0.5574 gate_freq=0.5624
+EarlyStopping counter: 15 out of 15
+Early stopping at epoch 16
+
+============================================================
+FINAL RESULT (Stage 3P): mse=0.4335, mae=0.4255, smape=76.9117
+============================================================
+[diag 3p-final]  freq.rs=-0.2233 mask.mean=0.497 mask.std=0.172  mrt.rs=-0.1147  gate_mrt=0.5000 gate_freq=0.5000
+Plan C complete.

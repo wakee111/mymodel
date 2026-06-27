@@ -55,20 +55,35 @@ class FrequencyFilterLayer(nn.Module):
       - Traffic (C=862): 862×49+1 = 42,239 params
     """
 
-    def __init__(self, seq_len, channel_size):
+    def __init__(self, seq_len, channel_size, res_scale_init=0.0,
+                 low_freq_bias=-2.0, n_low_bins=8):
+        """
+        Args:
+            low_freq_bias: logit bias for low-frequency bins.
+                sigmoid(-2.0) ≈ 0.12 → Freq starts "blind" to low freqs,
+                forcing it to find gradient signal in mid/high frequencies.
+                MRT's avg_pool naturally handles the low end.
+            n_low_bins: number of lowest frequency bins to bias.
+                For seq_len=96 (n_freq=49), bins 0-7 cover periods > 12 samples.
+        """
         super().__init__()
         self.seq_len = seq_len
         self.n_freq = seq_len // 2 + 1       # rfft bins (e.g., 49 for L=96)
         self.channel_size = channel_size
+        self.low_freq_bias = low_freq_bias
+        self.n_low_bins = min(n_low_bins, self.n_freq)
 
-        # Per-channel frequency weights, initialized to 0.
-        # sigmoid(0) = 0.5 → initially neutral (neither enhance nor suppress).
-        # During training, important frequencies are pushed toward 1,
-        # unimportant toward 0.
-        self.freq_weights = nn.Parameter(torch.zeros(channel_size, self.n_freq))
+        # Per-channel frequency weights.
+        # Low-freq bins: init with negative bias → sigmoid(-2.0) ≈ 0.12 (suppressed)
+        # Mid/high-freq bins: init at 0 → sigmoid(0) = 0.50 (neutral, learnable)
+        # This creates division of labor: MRT covers LF, Freq is pushed toward MF/HF.
+        init_weights = torch.zeros(channel_size, self.n_freq)
+        if self.n_low_bins > 0:
+            init_weights[:, :self.n_low_bins] = low_freq_bias
+        self.freq_weights = nn.Parameter(init_weights)
 
-        # Zero-init: module starts as identity, gradually contributes
-        self.res_scale = nn.Parameter(torch.zeros(1))
+        # res_scale: init=0 for identity start, init<0 for "subtractive filter" start
+        self.res_scale = nn.Parameter(torch.tensor(res_scale_init, dtype=torch.float32))
 
     def forward(self, x):
         # x: [B, C, L]
@@ -88,3 +103,17 @@ class FrequencyFilterLayer(nn.Module):
 
         # Zero-init residual: x + 0 * out = x at initialization
         return x + self.res_scale * out
+
+    def get_mask(self):
+        """Return current frequency mask [C, N_freq] in (0, 1)."""
+        return torch.sigmoid(self.freq_weights)
+
+    def get_sparsity_loss(self):
+        """Sparsity regularizer: pushes mask away from 0.5 toward 0 or 1.
+
+        mask * (1 - mask) is max at mask=0.5, min at mask=0 or 1.
+        Minimizing this encourages the mask to make a choice per bin
+        instead of staying flat and uninformative.
+        """
+        mask = self.get_mask()
+        return (mask * (1.0 - mask)).mean()

@@ -1,16 +1,19 @@
 #!/usr/bin/env python
 """
-Generalized multi-stage training: MRT warmstart + Freq fine-tune + FreDF joint optimize.
+Generalized multi-stage training: MRT warmstart + Freq fine-tune + progressive unfreeze.
 
 Supports: solar, etth1, etth2, ettm1, ettm2, weather, electricity, traffic
 
-Stage 1: Train MRT only (mrt_layers=1, freq_layers=0), save checkpoint.
-Stage 2: Load MRT checkpoint, add Freq branch, freeze backbone+MRT, train Freq 2-3 epochs.
-Stage 3: Unfreeze all, joint fine-tune with lower LR + optional FreDF.
+Stage 1:  Train MRT only (mrt_layers=1, freq_layers=0), save checkpoint.
+Stage 2:  Load MRT checkpoint, add Freq branch, freeze backbone+MRT+cycle, train Freq 2-3 epochs.
+Stage 3a: Freeze cycleQueue + mrt_blocks, train model + freq_blocks (progressive unfreeze:
+          let MLP learn to consume Freq output before MRT competes for gradients).
+Stage 3b: Unfreeze all, group-wise LR (freq high / model medium / mrt+cycle low),
+          optional FreDF.
 
 Usage:
-    CUDA_VISIBLE_DEVICES=0 python scripts/multi_stage_train.py \
-        --dataset etth1 --pred_len 96 [--stage3_fredf] [--gpu 0]
+    CUDA_VISIBLE_DEVICES=0 python scripts/multi_stage_train.py \\
+        --dataset solar --pred_len 192 [--stage3_fredf] [--gpu 0]
 """
 
 import os, sys, argparse, time, copy, random
@@ -230,6 +233,12 @@ def train_one_epoch(model, train_loader, optimizer, criterion, device, args, sch
             loss_freq = (torch.fft.rfft(outputs, dim=1) - torch.fft.rfft(batch_y, dim=1)).abs().mean()
             loss = args.freq_loss_alpha * loss + (1 - args.freq_loss_alpha) * loss_freq
 
+        # Sparsity regularizer: push freq mask away from 0.5
+        sparsity_lambda = getattr(args, 'freq_sparsity_lambda', 0.0)
+        if sparsity_lambda > 0 and hasattr(model, 'get_freq_sparsity_loss'):
+            loss_sparsity = model.get_freq_sparsity_loss()
+            loss = loss + sparsity_lambda * loss_sparsity
+
         loss.backward()
         optimizer.step()
 
@@ -311,6 +320,31 @@ def test_model(model, test_loader, device, args, setting):
     return mse, mae, smape_val
 
 
+def _diagnose_module_state(model, stage_label=""):
+    """Print key diagnostic metrics for Freq/MRT/Gate module state."""
+    parts = ["[diag {}]".format(stage_label)] if stage_label else ["[diag]"]
+
+    # Freq branch diagnostics
+    if hasattr(model, 'freq_blocks') and len(model.freq_blocks) > 0:
+        fb = model.freq_blocks[0]
+        rs = fb.res_scale.item()
+        mask = torch.sigmoid(fb.freq_weights)
+        parts.append("freq.rs={:+.4f} mask.mean={:.3f} mask.std={:.3f}".format(rs, mask.mean().item(), mask.std().item()))
+
+    # MRT branch diagnostics
+    if hasattr(model, 'mrt_blocks') and len(model.mrt_blocks) > 0:
+        mb = model.mrt_blocks[0]
+        parts.append("mrt.rs={:+.4f}".format(mb.res_scale.item()))
+
+    # Fusion gate diagnostics (only when gate is active)
+    if hasattr(model, 'gate_mrt_logit'):
+        gm = torch.sigmoid(model.gate_mrt_logit).mean().item()
+        gf = torch.sigmoid(model.gate_freq_logit).mean().item()
+        parts.append("gate_mrt={:.4f} gate_freq={:.4f}".format(gm, gf))
+
+    print("  ".join(parts))
+
+
 # ─── Stage helpers ────────────────────────────────────────────────
 
 def stage1_train_mrt(args, device):
@@ -367,17 +401,244 @@ def stage1_train_mrt(args, device):
     return best_path
 
 
-def stage2_add_freq_and_freeze(args, device, stage1_ckpt):
-    """Load MRT checkpoint, add Freq branch, freeze backbone+MRT+cycle, train Freq only."""
+# ─── Plan C: Separate MRT & Freq experts, then merge ──────────────
+
+def stage2p_train_freq_only(args, device, stage1_ckpt):
+    """Plan C Stage 2': Train Freq in MRT context (parallel+gate), full 30 epochs.
+
+    Architecture: parallel fusion with frozen MRT
+        x_base → MRT(frozen, S1 weights) → d_mrt
+        x_base → Freq(trainable)          → d_freq
+        x = x_base + d_mrt + d_freq       → MLP(frozen, S1 weights)
+
+    Key idea: Freq gets almost all gradient, but learns in the CONTEXT of MRT.
+    This is different from old Plan C (Freq-only, no MRT present): Freq now
+    learns what spectral filtering complements MRT's trend extraction.
+    Gate params are also trainable, initialized balanced at 0.5/0.5.
+    """
     print('\n' + '='*60)
-    print('STAGE 2: Load MRT + add Freq branch (frozen backbone/MRT/cycle)')
+    print("STAGE 2': Train Freq in MRT context (parallel+gate, MRT+MLP frozen)")
+    print('='*60)
+
+    args.mrt_layers = 1   # MRT present but frozen
+    args.freq_layers = 1
+    args.fusion_mode = 'parallel'
+    args.fusion_gate = 1
+    args.freq_loss_alpha = 1.0  # pure MSE
+    args.train_epochs = 30
+    args.patience = 15
+
+    setting = make_setting(args, '2p')
+    ckpt_dir = os.path.join(args.checkpoints, setting)
+    os.makedirs(ckpt_dir, exist_ok=True)
+
+    train_loader, val_loader, test_loader = get_data_loaders(args)
+
+    model = Model(args).float().to(device)
+
+    # --- Override gate init: balanced experts ---
+    model.gate_mrt_logit.data.fill_(0.0)
+    model.gate_freq_logit.data.fill_(0.0)
+    print('[PlanC Stage2\' gate] init gate_mrt ≈ 0.5000, gate_freq ≈ 0.5000 (balanced)')
+
+    # --- Load MRT+MLP from Stage 1 ---
+    s1_state = torch.load(stage1_ckpt)
+    model_state = model.state_dict()
+    loaded, fresh = 0, 0
+    for k in model_state.keys():
+        if k.startswith('freq_blocks') or k.startswith('gate_'):
+            fresh += 1  # Freq + gate: fresh (trainable)
+        elif k in s1_state and s1_state[k].shape == model_state[k].shape:
+            model_state[k] = s1_state[k]
+            loaded += 1
+        else:
+            fresh += 1
+    model.load_state_dict(model_state)
+    print('Loaded {} params from S1 (MRT+cycle+MLP), {} fresh (Freq+gate)'.format(loaded, fresh))
+
+    # --- Freeze MRT + cycle + MLP, train only Freq + gate ---
+    frozen_prefixes = ['cycleQueue', 'mrt_blocks', 'model']
+    for name, param in model.named_parameters():
+        if any(name.startswith(p) for p in frozen_prefixes):
+            param.requires_grad = False
+
+    n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    n_total = sum(p.numel() for p in model.parameters())
+    print('Trainable: {:,} / {:,} ({:.1f}%) — Freq+gate only'.format(
+        n_trainable, n_total, 100*n_trainable/n_total))
+
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.learning_rate)
+    scheduler = lr_scheduler.OneCycleLR(
+        optimizer, steps_per_epoch=len(train_loader),
+        pct_start=args.pct_start, epochs=args.train_epochs, max_lr=args.learning_rate)
+
+    early_stopping = EarlyStopping(patience=args.patience, verbose=True)
+
+    for epoch in range(args.train_epochs):
+        train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device, args, scheduler, epoch)
+        val_loss = validate(model, val_loader, criterion, device, args)
+        test_loss = validate(model, test_loader, criterion, device, args)
+        print('Epoch: {}, Steps: {} | Train: {:.7f} Vali: {:.7f} Test: {:.7f}'.format(
+            epoch + 1, len(train_loader), train_loss, val_loss, test_loss))
+        _diagnose_module_state(model, "2'-{}".format(epoch + 1))
+
+        early_stopping(val_loss, model, ckpt_dir)
+        if early_stopping.early_stop:
+            print('Early stopping at epoch {}'.format(epoch + 1))
+            break
+
+        if args.lradj != 'TST':
+            adjust_learning_rate(optimizer, scheduler, epoch + 1, args)
+
+    best_path = os.path.join(ckpt_dir, 'checkpoint.pth')
+    model.load_state_dict(torch.load(best_path))
+    mse, mae, smape = test_model(model, test_loader, device, args, setting)
+    print("STAGE 2' RESULT: mse={:.4f}, mae={:.4f}, smape={:.4f}".format(mse, mae, smape))
+
+    with open('result.txt', 'a') as f:
+        f.write(setting + "  \n")
+        f.write('mse:{}, mae:{}, smape:{}\n\n'.format(mse, mae, smape))
+
+    return best_path
+
+
+def stage3p_merge_and_finetune(args, device, stage1_ckpt, stage2p_ckpt):
+    """Plan C Stage 3: Merge MRT and Freq experts via PARALLEL fusion with gate.
+
+    Architecture (parallel, NOT serial):
+        x_base (raw residual)
+          ├── MRT(x_base) → d_mrt    ← S1 weights, same input as training ✅
+          └── Freq(x_base) → d_freq  ← S2' weights, same input as training ✅
+        x = x_base + gate_mrt·d_mrt + gate_freq·d_freq → MLP
+
+    Why parallel:
+      - MRT was trained on raw residual (Stage 1), not Freq output
+      - Freq was trained on raw residual (Stage 2'), not MRT output
+      - Serial would give Freq MRT-enhanced input → domain shift
+      - Parallel keeps each module's input consistent with its training
+      - Gate (init balanced at 0.5/0.5) learns to blend the two experts
+
+    Weight loading:
+      - cycleQueue, mrt_blocks ← Stage 1 (MRT expert)
+      - freq_blocks            ← Stage 2' (Freq expert)
+      - gate_mrt/gate_freq     ← balanced init (0.5/0.5)
+      - model (MLP)            ← Stage 1 (trained with MRT features)
+    """
+    print('\n' + '='*60)
+    print("STAGE 3P: Merge MRT(S1) + Freq(S2') experts, PARALLEL fusion + gate")
     print('='*60)
 
     args.mrt_layers = 1
     args.freq_layers = 1
-    args.freq_loss_alpha = 1.0  # pure MSE for warmup
-    args.train_epochs = 3  # short warmup
-    args.patience = 3
+    args.fusion_mode = 'parallel'
+    args.fusion_gate = 1
+    args.freq_loss_alpha = 1.0  # pure MSE
+    args.train_epochs = 30
+    args.patience = 15
+
+    setting = make_setting(args, '3p')
+    ckpt_dir = os.path.join(args.checkpoints, setting)
+    os.makedirs(ckpt_dir, exist_ok=True)
+
+    train_loader, val_loader, test_loader = get_data_loaders(args)
+
+    model = Model(args).float().to(device)
+
+    # --- Override gate init to balanced (both experts are trustworthy) ---
+    # Default init: MRT=2.0 (≈0.88), Freq=-1.5 (≈0.18) — biased toward MRT
+    # Plan C: both are trained experts → balanced init at sigmoid(0)=0.5
+    model.gate_mrt_logit.data.fill_(0.0)
+    model.gate_freq_logit.data.fill_(0.0)
+    print('[PlanC gate] init gate_mrt ≈ 0.5000, gate_freq ≈ 0.5000 (balanced experts)')
+
+    # --- Selective weight loading ---
+    s1_state = torch.load(stage1_ckpt)
+    s2p_state = torch.load(stage2p_ckpt)
+    model_state = model.state_dict()
+
+    loaded_from_s1, loaded_from_s2p, fresh = 0, 0, 0
+    for k in model_state.keys():
+        # Gate params ← fresh (balanced init, don't overwrite)
+        if k.startswith('gate_mrt_logit') or k.startswith('gate_freq_logit'):
+            fresh += 1
+        # Freq blocks ← Stage 2' (Freq expert, trained on raw residual)
+        elif k.startswith('freq_blocks') or k.startswith('freq_v') or k.startswith('sgf_blocks'):
+            if k in s2p_state and s2p_state[k].shape == model_state[k].shape:
+                model_state[k] = s2p_state[k]
+                loaded_from_s2p += 1
+            else:
+                fresh += 1
+        # MRT + cycle + MLP ← Stage 1 (MRT expert, trained on raw residual)
+        elif k in s1_state and s1_state[k].shape == model_state[k].shape:
+            model_state[k] = s1_state[k]
+            loaded_from_s1 += 1
+        else:
+            fresh += 1
+
+    model.load_state_dict(model_state)
+    print('Loaded: {} from S1(MRT), {} from S2\'(Freq), {} fresh'.format(
+        loaded_from_s1, loaded_from_s2p, fresh))
+
+    # Freeze nothing — full fine-tune
+    n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    print('Trainable: {:,} params (all unfrozen)'.format(n_trainable))
+
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate * 0.3)
+    scheduler = lr_scheduler.OneCycleLR(
+        optimizer, steps_per_epoch=len(train_loader),
+        pct_start=args.pct_start, epochs=args.train_epochs, max_lr=args.learning_rate * 0.3)
+
+    early_stopping = EarlyStopping(patience=args.patience, verbose=True)
+
+    for epoch in range(args.train_epochs):
+        train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device, args, scheduler, epoch)
+        val_loss = validate(model, val_loader, criterion, device, args)
+        test_loss = validate(model, test_loader, criterion, device, args)
+        print('Epoch: {}, Steps: {} | Train: {:.7f} Vali: {:.7f} Test: {:.7f}'.format(
+            epoch + 1, len(train_loader), train_loss, val_loss, test_loss))
+        _diagnose_module_state(model, '3p-{}'.format(epoch + 1))
+
+        early_stopping(val_loss, model, ckpt_dir)
+        if early_stopping.early_stop:
+            print('Early stopping at epoch {}'.format(epoch + 1))
+            break
+
+        if args.lradj != 'TST':
+            adjust_learning_rate(optimizer, scheduler, epoch + 1, args)
+
+    best_path = os.path.join(ckpt_dir, 'checkpoint.pth')
+    model.load_state_dict(torch.load(best_path))
+    mse, mae, smape = test_model(model, test_loader, device, args, setting)
+
+    print('\n' + '='*60)
+    print('FINAL RESULT (Stage 3P): mse={:.4f}, mae={:.4f}, smape={:.4f}'.format(mse, mae, smape))
+    print('='*60)
+    _diagnose_module_state(model, '3p-final')
+
+    with open('result.txt', 'a') as f:
+        f.write(setting + "  \n")
+        f.write('mse:{}, mae:{}, smape:{}\n\n'.format(mse, mae, smape))
+
+    return mse, mae, smape
+
+
+def stage2_add_freq_and_freeze(args, device, stage1_ckpt, cli_args=None):
+    """Load MRT checkpoint, add Freq branch, freeze backbone+MRT+cycle, train Freq only."""
+    max_epochs = getattr(cli_args, 'stage2_epochs', 3) if cli_args else 3
+    patience = getattr(cli_args, 'stage2_patience', 3) if cli_args else 3
+
+    print('\n' + '='*60)
+    print('STAGE 2: Load MRT + add Freq branch (frozen backbone/MRT/cycle, max_epochs={}, patience={})'.format(
+        max_epochs, patience))
+    print('='*60)
+
+    args.mrt_layers = 1
+    args.freq_layers = 1
+    # freq_loss_alpha: use user-provided value (default 1.0 = pure MSE)
+    args.train_epochs = max_epochs
+    args.patience = patience
 
     setting = make_setting(args, 2)
     ckpt_dir = os.path.join(args.checkpoints, setting)
@@ -400,14 +661,19 @@ def stage2_add_freq_and_freeze(args, device, stage1_ckpt):
     model.load_state_dict(model_state)
     print('Loaded {} params from stage1, {} new (Freq branch)'.format(matched, unmatched))
 
-    frozen_prefixes = ['cycleQueue', 'mrt_blocks', 'model']
+    freeze_backbone = getattr(cli_args, 'stage2_freeze_backbone', 1) if cli_args else 1
+    frozen_prefixes = ['cycleQueue', 'mrt_blocks']
+    if freeze_backbone:
+        frozen_prefixes.append('model')
+
     for name, param in model.named_parameters():
         should_freeze = any(name.startswith(p) for p in frozen_prefixes)
         param.requires_grad = not should_freeze
 
     n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
     n_total = sum(p.numel() for p in model.parameters())
-    print('Trainable: {:,} / {:,} ({:.1f}%)'.format(n_trainable, n_total, 100*n_trainable/n_total))
+    print('Trainable: {:,} / {:,} ({:.1f}%)  freeze_backbone={}'.format(
+        n_trainable, n_total, 100*n_trainable/n_total, freeze_backbone))
 
     criterion = nn.MSELoss()
     optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.learning_rate)
@@ -421,6 +687,7 @@ def stage2_add_freq_and_freeze(args, device, stage1_ckpt):
         train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device, args, scheduler, epoch)
         val_loss = validate(model, val_loader, criterion, device, args)
         print('Epoch: {}, Train: {:.7f} Vali: {:.7f}'.format(epoch + 1, train_loss, val_loss))
+        _diagnose_module_state(model, 's2-{}'.format(epoch + 1))
 
         early_stopping(val_loss, model, ckpt_dir)
         if early_stopping.early_stop:
@@ -436,22 +703,26 @@ def stage2_add_freq_and_freeze(args, device, stage1_ckpt):
     return stage2_path
 
 
-def stage3_joint_finetune(args, device, stage2_ckpt, use_fredf=False):
-    """Unfreeze all, joint fine-tune with lower LR."""
-    fredf_tag = ' + FreDF(α=0.8)' if use_fredf else ' (pure MSE)'
+def stage3a_align_freq_model(args, device, stage2_ckpt, cli_args=None):
+    """Progressive unfreeze part 1: freeze cycleQueue + mrt_blocks, train model + freq_blocks.
+
+    Goal: let MLP backbone learn to consume Freq output before MRT competes for gradients.
+    """
+    max_epochs = getattr(cli_args, 'stage3a_epochs', 12) if cli_args else 12
+    patience = getattr(cli_args, 'stage3a_patience', 6) if cli_args else 6
+
     print('\n' + '='*60)
-    print('STAGE 3: Unfreeze all, joint fine-tune (LR={:.4f}{})'.format(
-        args.learning_rate * 0.3, fredf_tag))
+    print('STAGE 3a: Freeze cycle+MRT, train model+Freq (max_epochs={}, patience={})'.format(
+        max_epochs, patience))
     print('='*60)
 
     args.mrt_layers = 1
     args.freq_layers = 1
-    args.freq_loss_alpha = 0.8 if use_fredf else 1.0
-    args.train_epochs = 30
-    args.patience = 15
-    args.learning_rate = args.learning_rate * 0.3  # 30% of base LR
+    # freq_loss_alpha: use user-provided value (default 1.0 = pure MSE)
+    args.train_epochs = max_epochs
+    args.patience = patience
 
-    setting = make_setting(args, 3)
+    setting = make_setting(args, '3a')
     ckpt_dir = os.path.join(args.checkpoints, setting)
     os.makedirs(ckpt_dir, exist_ok=True)
 
@@ -459,26 +730,174 @@ def stage3_joint_finetune(args, device, stage2_ckpt, use_fredf=False):
 
     model = Model(args).float().to(device)
 
-    model.load_state_dict(torch.load(stage2_ckpt))
-    print('Loaded stage2 checkpoint, unfreezing all parameters.')
+    stage2_state = torch.load(stage2_ckpt)
+    model_state = model.state_dict()
+    matched, unmatched = 0, 0
+    for k, v in stage2_state.items():
+        if k in model_state and v.shape == model_state[k].shape:
+            model_state[k] = v
+            matched += 1
+        else:
+            unmatched += 1
+    model.load_state_dict(model_state)
+    print('Loaded {} params from stage2, {} new/mismatched'.format(matched, unmatched))
 
-    for param in model.parameters():
-        param.requires_grad = True
+    # Freeze cycleQueue + mrt_blocks only; model + freq_blocks remain trainable
+    frozen_prefixes = ['cycleQueue', 'mrt_blocks']
+    for name, param in model.named_parameters():
+        if any(name.startswith(p) for p in frozen_prefixes):
+            param.requires_grad = False
+
+    n_trainable = sum(p.numel() for p in model.parameters() if p.requires_grad)
+    n_total = sum(p.numel() for p in model.parameters())
+    print('Trainable: {:,} / {:,} ({:.1f}%)'.format(n_trainable, n_total, 100*n_trainable/n_total))
+    print('Frozen prefixes: {}'.format(frozen_prefixes))
 
     criterion = nn.MSELoss()
-    optimizer = optim.Adam(model.parameters(), lr=args.learning_rate)
+    optimizer = optim.Adam(filter(lambda p: p.requires_grad, model.parameters()), lr=args.learning_rate)
     scheduler = lr_scheduler.OneCycleLR(
         optimizer, steps_per_epoch=len(train_loader),
-        pct_start=args.pct_start, epochs=args.train_epochs, max_lr=args.learning_rate)
+        pct_start=args.pct_start, epochs=max_epochs, max_lr=args.learning_rate)
 
     early_stopping = EarlyStopping(patience=args.patience, verbose=True)
+    best_epoch = 0
 
-    for epoch in range(args.train_epochs):
+    for epoch in range(max_epochs):
         train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device, args, scheduler, epoch)
         val_loss = validate(model, val_loader, criterion, device, args)
         test_loss = validate(model, test_loader, criterion, device, args)
         print('Epoch: {}, Steps: {} | Train: {:.7f} Vali: {:.7f} Test: {:.7f}'.format(
             epoch + 1, len(train_loader), train_loss, val_loss, test_loss))
+        _diagnose_module_state(model, '3a-{}'.format(epoch + 1))
+
+        early_stopping(val_loss, model, ckpt_dir)
+        if early_stopping.early_stop:
+            print('Early stopping at epoch {}'.format(epoch + 1))
+            best_epoch = epoch + 1
+            break
+
+        if args.lradj != 'TST':
+            adjust_learning_rate(optimizer, scheduler, epoch + 1, args)
+
+    if best_epoch == 0:
+        best_epoch = max_epochs
+
+    stage3a_path = os.path.join(ckpt_dir, 'checkpoint.pth')
+    if not os.path.exists(stage3a_path):
+        torch.save(model.state_dict(), stage3a_path)
+    else:
+        model.load_state_dict(torch.load(stage3a_path))
+
+    # Final diagnostics
+    print('\n--- Stage 3a final diagnostics ---')
+    _diagnose_module_state(model, '3a-final')
+
+    # Acceptance checks (warnings only, don't block)
+    if hasattr(model, 'freq_blocks') and len(model.freq_blocks) > 0:
+        rs = model.freq_blocks[0].res_scale.item()
+        mask = torch.sigmoid(model.freq_blocks[0].freq_weights)
+        if abs(rs) < 0.01:
+            print('  WARNING: freq.res_scale ≈ 0 — Freq branch did not activate.')
+        if mask.std().item() < 0.01:
+            print('  WARNING: freq mask std ≈ 0 — no frequency selectivity learned.')
+    if hasattr(model, 'gate_freq_logit'):
+        gf = torch.sigmoid(model.gate_freq_logit).mean().item()
+        if gf < 0.03:
+            print('  WARNING: gate_freq={:.4f} still near 0 — Freq branch suppressed.'.format(gf))
+
+    print('STAGE 3a complete.')
+    return stage3a_path
+
+
+def stage3b_full_finetune(args, device, stage3a_ckpt, use_fredf=False, cli_args=None):
+    """Progressive unfreeze part 2: unfreeze all, group-wise LR fine-tune.
+
+    Group LR (multipliers on base_lr):
+      - freq_blocks / gate:  high LR to keep learning frequency structure
+      - model (MLP):         medium LR to refine forecasting
+      - cycleQueue / mrt:    low LR to preserve what was learned in Stage 1-2
+    """
+    max_epochs = getattr(cli_args, 'stage3b_epochs', 20) if cli_args else 20
+    patience = getattr(cli_args, 'stage3b_patience', 10) if cli_args else 10
+    freq_mult = getattr(cli_args, 'stage3b_freq_lr_mult', 0.67) if cli_args else 0.67
+    model_mult = getattr(cli_args, 'stage3b_model_lr_mult', 0.33) if cli_args else 0.33
+    mrt_mult = getattr(cli_args, 'stage3b_mrt_lr_mult', 0.10) if cli_args else 0.10
+
+    base_lr = args.learning_rate * 0.3  # reduce from dataset base LR
+    fredf_tag = ' + FreDF(α=0.8)' if use_fredf else ' (pure MSE)'
+
+    print('\n' + '='*60)
+    print('STAGE 3b: Unfreeze all, group-wise LR (base={:.6f}, max_epochs={}, patience={}){}'.format(
+        base_lr, max_epochs, patience, fredf_tag))
+    print('  LR groups: freq/gate ×{:.2f}, model ×{:.2f}, mrt/cycle ×{:.2f}'.format(
+        freq_mult, model_mult, mrt_mult))
+    print('='*60)
+
+    args.mrt_layers = 1
+    args.freq_layers = 1
+    args.freq_loss_alpha = 0.8 if use_fredf else 1.0
+    args.train_epochs = max_epochs
+    args.patience = patience
+
+    setting = make_setting(args, '3b')
+    ckpt_dir = os.path.join(args.checkpoints, setting)
+    os.makedirs(ckpt_dir, exist_ok=True)
+
+    train_loader, val_loader, test_loader = get_data_loaders(args)
+
+    model = Model(args).float().to(device)
+    model.load_state_dict(torch.load(stage3a_ckpt))
+    print('Loaded stage3a checkpoint, unfreezing all parameters.')
+
+    # Unfreeze all
+    for param in model.parameters():
+        param.requires_grad = True
+
+    # Build group-wise parameter groups
+    freq_prefixes = ['freq_blocks', 'freq_v2_blocks', 'freq_v3_blocks', 'freq_v4_blocks', 'sgf_blocks',
+                     'gate_mrt_logit', 'gate_freq_logit']
+    mrt_prefixes = ['cycleQueue', 'mrt_blocks']
+
+    freq_params, model_params, mrt_params, other_params = [], [], [], []
+    for name, param in model.named_parameters():
+        if any(name.startswith(p) for p in freq_prefixes):
+            freq_params.append(param)
+        elif name.startswith('model.'):
+            model_params.append(param)
+        elif any(name.startswith(p) for p in mrt_prefixes):
+            mrt_params.append(param)
+        else:
+            other_params.append(param)
+
+    param_groups = []
+    if freq_params:
+        param_groups.append({'params': freq_params, 'lr': base_lr * freq_mult, 'name': 'freq/gate'})
+    if model_params:
+        param_groups.append({'params': model_params, 'lr': base_lr * model_mult, 'name': 'model'})
+    if mrt_params:
+        param_groups.append({'params': mrt_params, 'lr': base_lr * mrt_mult, 'name': 'mrt/cycle'})
+    if other_params:
+        param_groups.append({'params': other_params, 'lr': base_lr * 0.1, 'name': 'other'})
+
+    for pg in param_groups:
+        n = sum(p.numel() for p in pg['params'])
+        print('  Group {}: {:,} params, LR={:.6f}'.format(pg['name'], n, pg['lr']))
+
+    criterion = nn.MSELoss()
+    optimizer = optim.Adam(param_groups, lr=base_lr)
+    scheduler = lr_scheduler.OneCycleLR(
+        optimizer, steps_per_epoch=len(train_loader),
+        pct_start=args.pct_start, epochs=max_epochs, max_lr=base_lr)
+
+    early_stopping = EarlyStopping(patience=args.patience, verbose=True)
+
+    for epoch in range(max_epochs):
+        train_loss = train_one_epoch(model, train_loader, optimizer, criterion, device, args, scheduler, epoch)
+        val_loss = validate(model, val_loader, criterion, device, args)
+        test_loss = validate(model, test_loader, criterion, device, args)
+        print('Epoch: {}, Steps: {} | Train: {:.7f} Vali: {:.7f} Test: {:.7f}'.format(
+            epoch + 1, len(train_loader), train_loss, val_loss, test_loss))
+        _diagnose_module_state(model, '3b-{}'.format(epoch + 1))
 
         early_stopping(val_loss, model, ckpt_dir)
         if early_stopping.early_stop:
@@ -491,9 +910,11 @@ def stage3_joint_finetune(args, device, stage2_ckpt, use_fredf=False):
     best_path = os.path.join(ckpt_dir, 'checkpoint.pth')
     model.load_state_dict(torch.load(best_path))
     mse, mae, smape = test_model(model, test_loader, device, args, setting)
+
     print('\n' + '='*60)
-    print('FINAL RESULT: mse={:.4f}, mae={:.4f}, smape={:.4f}'.format(mse, mae, smape))
+    print('FINAL RESULT (Stage 3b): mse={:.4f}, mae={:.4f}, smape={:.4f}'.format(mse, mae, smape))
     print('='*60)
+    _diagnose_module_state(model, '3b-final')
 
     with open('result.txt', 'a') as f:
         f.write(setting + "  \n")
@@ -512,29 +933,155 @@ if __name__ == '__main__':
     parser.add_argument('--seed', type=int, default=2024)
     parser.add_argument('--gpu', type=int, default=0, help='GPU device id')
     parser.add_argument('--stage1_only', action='store_true', help='Only run stage 1')
-    parser.add_argument('--stage3_fredf', action='store_true', help='Enable FreDF (α=0.8) in Stage 3 joint fine-tune')
+    parser.add_argument('--stage2_only', action='store_true', help='Stop after Stage 2, test and exit')
+    parser.add_argument('--stage2_freeze_backbone', type=int, default=1,
+                        help='1=freeze MLP in Stage 2, 0=unfreeze (train Freq+MLP jointly)')
+    parser.add_argument('--stage3_fredf', action='store_true', help='Enable FreDF (α=0.8) in Stage 3b')
+    parser.add_argument('--freq_loss_alpha', type=float, default=1.0,
+                        help='Frequency loss weight: alpha*MSE + (1-alpha)*FreqLoss (default 1.0 = pure MSE)')
     parser.add_argument('--from_stage2', type=str, default='', help='Skip to stage 2 with given stage1 ckpt path')
+    parser.add_argument('--plan_c', action='store_true',
+                        help='Plan C: train MRT & Freq as separate experts, then merge')
+    # Model architecture
+    parser.add_argument('--fusion_mode', type=str, default='serial', choices=['serial', 'parallel'],
+                        help='Enhancement fusion: serial (default) or parallel with residual-delta fusion')
+    parser.add_argument('--fusion_gate', type=int, default=0,
+                        help='Parallel fusion gate: 0=plain sum, 1=per-channel sigmoid gate')
+    # Stage 2 (Freq warmup: frozen backbone+MRT+cycle, train Freq only)
+    parser.add_argument('--stage2_epochs', type=int, default=3,
+                        help='Stage 2 max epochs (freq warmup, frozen backbone/MRT/cycle)')
+    parser.add_argument('--stage2_patience', type=int, default=3,
+                        help='Stage 2 early stopping patience')
+    # Stage 3a (progressive unfreeze: freeze cycle+mrt, train model+freq)
+    parser.add_argument('--stage3a_epochs', type=int, default=12,
+                        help='Stage 3a max epochs (frozen cycle+mrt, train model+freq)')
+    parser.add_argument('--stage3a_patience', type=int, default=6,
+                        help='Stage 3a early stopping patience')
+    # Stage 3b (full unfreeze + group-wise LR)
+    parser.add_argument('--stage3b_epochs', type=int, default=20,
+                        help='Stage 3b max epochs (group-wise LR full finetune)')
+    parser.add_argument('--stage3b_patience', type=int, default=10,
+                        help='Stage 3b early stopping patience')
+    parser.add_argument('--stage3b_freq_lr_mult', type=float, default=0.67,
+                        help='LR multiplier for freq/gate params in stage 3b')
+    parser.add_argument('--stage3b_model_lr_mult', type=float, default=0.33,
+                        help='LR multiplier for MLP backbone in stage 3b')
+    parser.add_argument('--stage3b_mrt_lr_mult', type=float, default=0.10,
+                        help='LR multiplier for mrt/cycle params in stage 3b')
+    parser.add_argument('--freq_sparsity_lambda', type=float, default=0.0,
+                        help='Sparsity regularizer weight: pushes freq mask away from 0.5 (0=off, 0.01~0.1 recommended)')
+    parser.add_argument('--no_stage3a', action='store_true',
+                        help='Skip Stage 3a, go directly Stage 2 -> Stage 3b (avoids freeze-then-unfreeze distribution shift)')
     args_cli = parser.parse_args()
 
     os.chdir(ROOT)
     device = torch.device('cuda:{}'.format(args_cli.gpu) if torch.cuda.is_available() else 'cpu')
     dataset_name = args_cli.dataset
-    print('Device:', device)
-    print('Dataset:', dataset_name, '| Pred len:', args_cli.pred_len, '| Seed:', args_cli.seed)
-    print('Stage3 FreDF:', args_cli.stage3_fredf)
-
     base_args = build_args(dataset_name, args_cli.pred_len, args_cli.seed)
 
+    # Override with CLI fusion settings
+    base_args.fusion_mode = args_cli.fusion_mode
+    base_args.fusion_gate = args_cli.fusion_gate
+    base_args.freq_sparsity_lambda = args_cli.freq_sparsity_lambda
+    base_args.freq_loss_alpha = args_cli.freq_loss_alpha
+
+    print('='*60)
+    print('CONFIGURATION')
+    print('='*60)
+    print('Device     :', device)
+    print('Dataset    :', dataset_name)
+    print('Pred len   :', args_cli.pred_len)
+    print('Seed       :', args_cli.seed)
+    print('')
+    print('--- Data ---')
+    print('enc_in     :', base_args.enc_in)
+    print('seq_len    :', base_args.seq_len)
+    print('cycle      :', base_args.cycle)
+    print('use_revin  :', base_args.use_revin)
+    print('batch_size :', base_args.batch_size)
+    print('')
+    print('--- Model ---')
+    print('model_type :', base_args.model_type)
+    print('d_model    :', base_args.d_model)
+    print('mrt_layers :', base_args.mrt_layers)
+    print('freq_layers:', base_args.freq_layers)
+    print('fusion     : mode={}, gate={}, sparsity={}'.format(
+        base_args.fusion_mode, base_args.fusion_gate, base_args.freq_sparsity_lambda))
+    print('')
+    print('--- Training ---')
+    print('base_lr    :', base_args.learning_rate)
+    print('Stage1     : epochs={}, patience={}'.format(base_args.train_epochs, base_args.patience))
+    freeze_bb = getattr(args_cli, 'stage2_freeze_backbone', 1)
+    print('Stage2     : epochs={}, patience={}, freeze_backbone={}'.format(
+        args_cli.stage2_epochs, args_cli.stage2_patience, freeze_bb))
+    if args_cli.stage2_only:
+        print('Stage3     : SKIPPED (stage2_only)')
+    else:
+        print('Stage3 FreDF:', args_cli.stage3_fredf)
+        print('Stage3a    : epochs={}, patience={}'.format(args_cli.stage3a_epochs, args_cli.stage3a_patience))
+        print('Stage3b    : epochs={}, patience={}, freq×{:.2f} model×{:.2f} mrt×{:.2f}'.format(
+            args_cli.stage3b_epochs, args_cli.stage3b_patience,
+            args_cli.stage3b_freq_lr_mult, args_cli.stage3b_model_lr_mult, args_cli.stage3b_mrt_lr_mult))
+    print('='*60)
+
+    # --- Stage 1: Train MRT only ---
+    # Save user's freq_loss_alpha before Stage 1 hardcodes it to 1.0
+    _user_freq_alpha = base_args.freq_loss_alpha
     if args_cli.from_stage2:
         stage1_path = args_cli.from_stage2
         print('Skipping stage 1, using checkpoint:', stage1_path)
     else:
         stage1_path = stage1_train_mrt(base_args, device)
+    # Restore user's freq_loss_alpha for Stage 2 / Stage 3a
+    base_args.freq_loss_alpha = _user_freq_alpha
 
     if args_cli.stage1_only:
         print('Stage 1 only. Done.')
         sys.exit(0)
 
-    stage2_path = stage2_add_freq_and_freeze(base_args, device, stage1_path)
+    # ── Plan C: separate experts → merge ──
+    if args_cli.plan_c:
+        print('\n' + '#'*60)
+        print('#  PLAN C: MRT & Freq as separate experts → merge')
+        print('#'*60)
 
-    stage3_joint_finetune(base_args, device, stage2_path, use_fredf=args_cli.stage3_fredf)
+        # Stage 2': Train Freq in MRT context (parallel+gate, MRT+MLP frozen)
+        stage2p_path = stage2p_train_freq_only(base_args, device, stage1_path)
+
+        # Stage 3P: Merge MRT & Freq ckpts, joint fine-tune
+        stage3p_merge_and_finetune(base_args, device, stage1_path, stage2p_path)
+        print('Plan C complete.')
+        sys.exit(0)
+
+    # ── Original flow: Stage 2 → Stage 3a → Stage 3b ──
+    stage2_path = stage2_add_freq_and_freeze(base_args, device, stage1_path, cli_args=args_cli)
+
+    if args_cli.stage2_only:
+        # Test Stage 2 model and exit
+        print('\n' + '='*60)
+        print('STAGE 2 ONLY: Testing from Stage 2 checkpoint')
+        print('='*60)
+        model = Model(base_args).float().to(device)
+        model.load_state_dict(torch.load(stage2_path))
+        model.eval()
+        _, _, test_loader = get_data_loaders(base_args)
+        mse, mae, smape = test_model(model, test_loader, device, base_args, base_args.model_id + '_stage2')
+        _diagnose_module_state(model, 'stage2-final')
+        print('\n' + '='*60)
+        print('FINAL RESULT (Stage 2 only): mse={:.4f}, mae={:.4f}, smape={:.4f}'.format(mse, mae, smape))
+        print('='*60)
+        sys.exit(0)
+
+    if args_cli.no_stage3a:
+        # Skip Stage 3a: avoids freeze-then-unfreeze distribution shift.
+        # Go directly Stage 2 → Stage 3b with group-wise LR.
+        print('\n' + '='*60)
+        print('SKIPPING Stage 3a (--no_stage3a): Stage 2 -> Stage 3b directly')
+        print('='*60)
+        stage3b_full_finetune(base_args, device, stage2_path, use_fredf=args_cli.stage3_fredf, cli_args=args_cli)
+    else:
+        # --- Stage 3a: Freeze cycle+mrt, train model+freq (progressive unfreeze) ---
+        stage3a_path = stage3a_align_freq_model(base_args, device, stage2_path, cli_args=args_cli)
+
+        # --- Stage 3b: Unfreeze all, group-wise LR fine-tune ---
+        stage3b_full_finetune(base_args, device, stage3a_path, use_fredf=args_cli.stage3_fredf, cli_args=args_cli)
