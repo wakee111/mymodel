@@ -96,7 +96,7 @@ def build_args(dataset, pred_len, seed=2024):
     parser.add_argument('--features', type=str, default='M')
     parser.add_argument('--target', type=str, default='OT')
     parser.add_argument('--freq', type=str, default=cfg['freq'])
-    parser.add_argument('--checkpoints', type=str, default='./checkpoints/')
+    parser.add_argument('--checkpoints', type=str, default='./checkpoints_new/')
     # Task
     parser.add_argument('--seq_len', type=int, default=96)
     parser.add_argument('--label_len', type=int, default=0)
@@ -360,7 +360,11 @@ def stage1_train_mrt(args, device):
     args.patience = 15
 
     setting = make_setting(args, 1)
-    ckpt_dir = os.path.join(args.checkpoints, setting)
+    if getattr(args, 'exp_name', None):
+        ds = getattr(args, 'dataset_name', args.data)
+        ckpt_dir = os.path.join(args.checkpoints, ds, args.exp_name, 'stage1')
+    else:
+        ckpt_dir = os.path.join(args.checkpoints, setting)
     os.makedirs(ckpt_dir, exist_ok=True)
 
     train_loader, val_loader, test_loader = get_data_loaders(args)
@@ -641,7 +645,11 @@ def stage2_add_freq_and_freeze(args, device, stage1_ckpt, cli_args=None):
     args.patience = patience
 
     setting = make_setting(args, 2)
-    ckpt_dir = os.path.join(args.checkpoints, setting)
+    if getattr(args, 'exp_name', None):
+        ds = getattr(args, 'dataset_name', args.data)
+        ckpt_dir = os.path.join(args.checkpoints, ds, args.exp_name, 'stage2')
+    else:
+        ckpt_dir = os.path.join(args.checkpoints, setting)
     os.makedirs(ckpt_dir, exist_ok=True)
 
     train_loader, val_loader, test_loader = get_data_loaders(args)
@@ -723,7 +731,11 @@ def stage3a_align_freq_model(args, device, stage2_ckpt, cli_args=None):
     args.patience = patience
 
     setting = make_setting(args, '3a')
-    ckpt_dir = os.path.join(args.checkpoints, setting)
+    if getattr(args, 'exp_name', None):
+        ds = getattr(args, 'dataset_name', args.data)
+        ckpt_dir = os.path.join(args.checkpoints, ds, args.exp_name, 'stage3a')
+    else:
+        ckpt_dir = os.path.join(args.checkpoints, setting)
     os.makedirs(ckpt_dir, exist_ok=True)
 
     train_loader, val_loader, test_loader = get_data_loaders(args)
@@ -840,7 +852,11 @@ def stage3b_full_finetune(args, device, stage3a_ckpt, use_fredf=False, cli_args=
     args.patience = patience
 
     setting = make_setting(args, '3b')
-    ckpt_dir = os.path.join(args.checkpoints, setting)
+    if getattr(args, 'exp_name', None):
+        ds = getattr(args, 'dataset_name', args.data)
+        ckpt_dir = os.path.join(args.checkpoints, ds, args.exp_name, 'stage3b')
+    else:
+        ckpt_dir = os.path.join(args.checkpoints, setting)
     os.makedirs(ckpt_dir, exist_ok=True)
 
     train_loader, val_loader, test_loader = get_data_loaders(args)
@@ -939,6 +955,9 @@ if __name__ == '__main__':
     parser.add_argument('--stage3_fredf', action='store_true', help='Enable FreDF (α=0.8) in Stage 3b')
     parser.add_argument('--freq_loss_alpha', type=float, default=1.0,
                         help='Frequency loss weight: alpha*MSE + (1-alpha)*FreqLoss (default 1.0 = pure MSE)')
+    parser.add_argument('--exp_name', type=str, default='',
+                        help='Experiment name for checkpoint dir (e.g. ETTh1_nostage3a_96). '
+                             'If set, checkpoints go to checkpoints/{dataset}/{exp_name}/')
     parser.add_argument('--from_stage2', type=str, default='', help='Skip to stage 2 with given stage1 ckpt path')
     parser.add_argument('--plan_c', action='store_true',
                         help='Plan C: train MRT & Freq as separate experts, then merge')
@@ -972,6 +991,10 @@ if __name__ == '__main__':
                         help='Sparsity regularizer weight: pushes freq mask away from 0.5 (0=off, 0.01~0.1 recommended)')
     parser.add_argument('--no_stage3a', action='store_true',
                         help='Skip Stage 3a, go directly Stage 2 -> Stage 3b (avoids freeze-then-unfreeze distribution shift)')
+    parser.add_argument('--cycle_mode', type=str, default='lookup', choices=['lookup', 'lowrank'],
+                        help='Cycle decomposition: lookup (RecurrentCycle) or lowrank (LowRankCycle)')
+    parser.add_argument('--cycle_rank', type=int, default=4,
+                        help='Rank for LowRankCycle decomposition')
     args_cli = parser.parse_args()
 
     os.chdir(ROOT)
@@ -984,6 +1007,10 @@ if __name__ == '__main__':
     base_args.fusion_gate = args_cli.fusion_gate
     base_args.freq_sparsity_lambda = args_cli.freq_sparsity_lambda
     base_args.freq_loss_alpha = args_cli.freq_loss_alpha
+    base_args.dataset_name = dataset_name
+    base_args.exp_name = args_cli.exp_name
+    base_args.cycle_mode = args_cli.cycle_mode
+    base_args.cycle_rank = args_cli.cycle_rank
 
     print('='*60)
     print('CONFIGURATION')

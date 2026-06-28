@@ -1,0 +1,142 @@
+============================================================
+CONFIGURATION
+============================================================
+Device     : cuda:0
+Dataset    : ettm2
+Pred len   : 192
+Seed       : 2024
+
+--- Data ---
+enc_in     : 7
+seq_len    : 96
+cycle      : 96
+use_revin  : 1
+batch_size : 256
+
+--- Model ---
+model_type : mlp
+d_model    : 512
+mrt_layers : 1
+freq_layers: 0
+fusion     : mode=serial, gate=0, sparsity=0.0
+
+--- Training ---
+base_lr    : 0.005
+Stage1     : epochs=30, patience=15
+Stage2     : epochs=3, patience=3, freeze_backbone=0
+Stage3     : SKIPPED (stage2_only)
+============================================================
+
+============================================================
+STAGE 1: Train MRT only (freq_layers=0)
+============================================================
+train 34273
+val 11329
+test 11329
+    iters: 100, epoch: 1 | loss: 0.3285691 | speed: 0.0319s/iter; left: 124s
+Epoch: 1, Steps: 133 | Train: 0.3503935 Vali: 0.1738490 Test: 0.2471536
+Validation loss decreased (inf --> 0.173849).  Saving model ...
+Updating learning rate to 0.005
+    iters: 100, epoch: 2 | loss: 0.2477777 | speed: 0.0202s/iter; left: 76s
+Epoch: 2, Steps: 133 | Train: 0.3264271 Vali: 0.1635789 Test: 0.2311687
+Validation loss decreased (0.173849 --> 0.163579).  Saving model ...
+Updating learning rate to 0.005
+    iters: 100, epoch: 3 | loss: 0.2655493 | speed: 0.0195s/iter; left: 71s
+Epoch: 3, Steps: 133 | Train: 0.3077285 Vali: 0.1614174 Test: 0.2254711
+Validation loss decreased (0.163579 --> 0.161417).  Saving model ...
+Updating learning rate to 0.005
+    iters: 100, epoch: 4 | loss: 0.3487843 | speed: 0.0218s/iter; left: 76s
+Epoch: 4, Steps: 133 | Train: 0.2993274 Vali: 0.1625022 Test: 0.2275257
+EarlyStopping counter: 1 out of 15
+Updating learning rate to 0.004
+    iters: 100, epoch: 5 | loss: 0.2671466 | speed: 0.0225s/iter; left: 75s
+Epoch: 5, Steps: 133 | Train: 0.2957807 Vali: 0.1710395 Test: 0.2282161
+EarlyStopping counter: 2 out of 15
+Updating learning rate to 0.0032000000000000006
+    iters: 100, epoch: 6 | loss: 0.2384549 | speed: 0.0198s/iter; left: 64s
+Epoch: 6, Steps: 133 | Train: 0.2848837 Vali: 0.1743378 Test: 0.2279365
+EarlyStopping counter: 3 out of 15
+Updating learning rate to 0.0025600000000000006
+    iters: 100, epoch: 7 | loss: 0.2483597 | speed: 0.0198s/iter; left: 61s
+Epoch: 7, Steps: 133 | Train: 0.2735196 Vali: 0.1794404 Test: 0.2317112
+EarlyStopping counter: 4 out of 15
+Updating learning rate to 0.0020480000000000003
+    iters: 100, epoch: 8 | loss: 0.2694691 | speed: 0.0199s/iter; left: 59s
+Epoch: 8, Steps: 133 | Train: 0.2657985 Vali: 0.1865171 Test: 0.2358072
+EarlyStopping counter: 5 out of 15
+Updating learning rate to 0.0016384000000000004
+    iters: 100, epoch: 9 | loss: 0.2298153 | speed: 0.0210s/iter; left: 59s
+Epoch: 9, Steps: 133 | Train: 0.2591096 Vali: 0.1914919 Test: 0.2383000
+EarlyStopping counter: 6 out of 15
+Updating learning rate to 0.0013107200000000005
+    iters: 100, epoch: 10 | loss: 0.2610745 | speed: 0.0190s/iter; left: 51s
+Epoch: 10, Steps: 133 | Train: 0.2534945 Vali: 0.1932752 Test: 0.2401642
+EarlyStopping counter: 7 out of 15
+Updating learning rate to 0.0010485760000000005
+    iters: 100, epoch: 11 | loss: 0.2001122 | speed: 0.0195s/iter; left: 50s
+Epoch: 11, Steps: 133 | Train: 0.2486105 Vali: 0.1951305 Test: 0.2419866
+EarlyStopping counter: 8 out of 15
+Updating learning rate to 0.0008388608000000005
+    iters: 100, epoch: 12 | loss: 0.2500362 | speed: 0.0220s/iter; left: 53s
+Epoch: 12, Steps: 133 | Train: 0.2454910 Vali: 0.1969907 Test: 0.2435150
+EarlyStopping counter: 9 out of 15
+Updating learning rate to 0.0006710886400000003
+    iters: 100, epoch: 13 | loss: 0.2146457 | speed: 0.0201s/iter; left: 46s
+Epoch: 13, Steps: 133 | Train: 0.2425078 Vali: 0.1979782 Test: 0.2441334
+EarlyStopping counter: 10 out of 15
+Updating learning rate to 0.0005368709120000003
+    iters: 100, epoch: 14 | loss: 0.2405702 | speed: 0.0204s/iter; left: 44s
+Epoch: 14, Steps: 133 | Train: 0.2402086 Vali: 0.2009464 Test: 0.2460091
+EarlyStopping counter: 11 out of 15
+Updating learning rate to 0.0004294967296000003
+    iters: 100, epoch: 15 | loss: 0.1906044 | speed: 0.0201s/iter; left: 41s
+Epoch: 15, Steps: 133 | Train: 0.2388753 Vali: 0.2003626 Test: 0.2461139
+EarlyStopping counter: 12 out of 15
+Updating learning rate to 0.0003435973836800002
+    iters: 100, epoch: 16 | loss: 0.2769307 | speed: 0.0195s/iter; left: 37s
+Epoch: 16, Steps: 133 | Train: 0.2372649 Vali: 0.2018640 Test: 0.2474141
+EarlyStopping counter: 13 out of 15
+Updating learning rate to 0.0002748779069440002
+    iters: 100, epoch: 17 | loss: 0.2616289 | speed: 0.0206s/iter; left: 36s
+Epoch: 17, Steps: 133 | Train: 0.2361616 Vali: 0.2034036 Test: 0.2482089
+EarlyStopping counter: 14 out of 15
+Updating learning rate to 0.00021990232555520019
+    iters: 100, epoch: 18 | loss: 0.1893557 | speed: 0.0209s/iter; left: 34s
+Epoch: 18, Steps: 133 | Train: 0.2351784 Vali: 0.2029107 Test: 0.2482951
+EarlyStopping counter: 15 out of 15
+Early stopping at epoch 18
+STAGE 1 RESULT: mse=0.2276, mae=0.2890, smape=46.4563
+
+============================================================
+STAGE 2: Load MRT + add Freq branch (frozen backbone/MRT/cycle, max_epochs=3, patience=3)
+============================================================
+train 34273
+val 11329
+test 11329
+Loaded 10 params from stage1, 0 new (Freq branch)
+Trainable: 148,504 / 149,261 (99.5%)  freeze_backbone=0
+    iters: 100, epoch: 1 | loss: 0.3359112 | speed: 0.0219s/iter; left: 7s
+Epoch: 1, Train: 0.2981675 Vali: 0.1606310
+[diag s2-1]  freq.rs=+0.0045 mask.mean=0.438 mask.std=0.141  mrt.rs=+0.4307
+Validation loss decreased (inf --> 0.160631).  Saving model ...
+    iters: 100, epoch: 2 | loss: 0.2704446 | speed: 0.0199s/iter; left: 3s
+Epoch: 2, Train: 0.2964018 Vali: 0.1607577
+[diag s2-2]  freq.rs=+0.0078 mask.mean=0.438 mask.std=0.141  mrt.rs=+0.4307
+EarlyStopping counter: 1 out of 3
+    iters: 100, epoch: 3 | loss: 0.3625571 | speed: 0.0192s/iter; left: 1s
+Epoch: 3, Train: 0.2941730 Vali: 0.1611738
+[diag s2-3]  freq.rs=+0.0102 mask.mean=0.438 mask.std=0.141  mrt.rs=+0.4307
+EarlyStopping counter: 2 out of 3
+STAGE 2 complete.
+
+============================================================
+STAGE 2 ONLY: Testing from Stage 2 checkpoint
+============================================================
+train 34273
+val 11329
+test 11329
+[diag stage2-final]  freq.rs=+0.0045 mask.mean=0.438 mask.std=0.141  mrt.rs=+0.4307
+
+============================================================
+FINAL RESULT (Stage 2 only): mse=0.2272, mae=0.2888, smape=46.3995
+============================================================
